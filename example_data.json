@@ -1,0 +1,44 @@
+{
+    "trainServices": [
+        {
+            "futureCancellation": false,
+            "futureDelay": false,
+            "origin": [
+                {
+                    "locationName": "Reading",
+                    "crs": "RDG",
+                    "assocIsCancelled": false
+                }
+            ],
+            "destination": [
+                {
+                    "locationName": "London Waterloo",
+                    "crs": "WAT",
+                    "assocIsCancelled": false
+                }
+            ],
+            "std": "20:09",
+            "etd": "On time",
+            "platform": "5",
+            "operator": "South Western Railway",
+            "operatorCode": "SW",
+            "isCircularRoute": false,
+            "isCancelled": false,
+            "filterLocationCancelled": false,
+            "serviceType": "train",
+            "length": 0,
+            "detachFront": false,
+            "isReverseFormation": false,
+            "serviceID": "1182616RDNG4AB_"
+        }
+    ],
+    "Xmlns": {
+        "Count": 8
+    },
+    "generatedAt": "2025-04-23T20:09:00.4889843+01:00",
+    "locationName": "Reading",
+    "crs": "RDG",
+    "filterType": "to",
+    "platformAvailable": true,
+    "areServicesAvailable": true
+}
