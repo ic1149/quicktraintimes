@@ -5,7 +5,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 // https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
@@ -13,6 +16,11 @@ import (
 // https://api1.raildata.org.uk/1010-service-details1_2/LDBWS/api/20220120/GetServiceDetails/{serviceid}
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %s", err)
+	}
+
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/"
 	const crs string = "RDG"
 	var url string = base_url + strings.ToUpper(crs)
@@ -23,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	const dep_api_key string = ""
+	var dep_api_key string = os.Getenv("dep_key")
 	req.Header.Set("x-apikey", dep_api_key)
 	client := &http.Client{}
 
