@@ -79,13 +79,13 @@ func main() {
 
 	res_struct := return_data{}
 
-	json.Unmarshal([]byte(fmt.Sprintf("%s", body)), &res_struct)
+	json.Unmarshal(fmt.Appendf(nil, "%s", body), &res_struct)
 
-	firstService := res_struct.TrainServices[0].(map[string]interface{})
+	firstService := res_struct.TrainServices[0].(map[string]any)
 
-	dest := firstService["destination"].([]interface{})
+	dest := firstService["destination"].([]any)
 
-	dest_inner := dest[0].(map[string]interface{})
+	dest_inner := dest[0].(map[string]any)
 
 	fmt.Println(dest_inner["crs"])
 
