@@ -89,6 +89,7 @@ func main() {
 
 	dest_inner := dest[0].(map[string]any)
 
-	fmt.Println(dest_inner["crs"])
+	fmt.Printf("Platform %s for the %s (expected %s)\n", firstService["platform"], firstService["std"], firstService["etd"])
+	fmt.Printf("%s service to %s\n", firstService["operator"], dest_inner["locationName"])
 
 }
