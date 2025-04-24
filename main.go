@@ -49,7 +49,7 @@ func main() {
 	crs = strings.ToUpper(strings.TrimSpace(crs))
 
 	params, err := format_params([]string{"numRows"},
-		[]string{"2"})
+		[]string{"11"})
 
 	if err != nil {
 		log.Fatal(err)
@@ -87,13 +87,13 @@ func main() {
 
 	json.Unmarshal(fmt.Appendf(nil, "%s", body), &res_struct)
 
-	firstService := res_struct.TrainServices[0].(map[string]any)
+	for idx, val := range res_struct.TrainServices {
+		thisService := val.(map[string]any)
+		thisDest := thisService["destination"].([]any)
+		thisDestInner := thisDest[0].(map[string]any)
 
-	dest := firstService["destination"].([]any)
-
-	dest_inner := dest[0].(map[string]any)
-
-	fmt.Printf("Platform %s for the %s (expected %s)\n", firstService["platform"], firstService["std"], firstService["etd"])
-	fmt.Printf("%s service to %s\n", firstService["operator"], dest_inner["locationName"])
+		fmt.Printf("%d: Platform %s for the %s (expected %s)\n", idx+1, thisService["platform"], thisService["std"], thisService["etd"])
+		fmt.Printf("%s service to %s\n\n", thisService["operator"], thisDestInner["locationName"])
+	}
 
 }
