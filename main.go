@@ -20,8 +20,8 @@ import (
 func format_params(param_list []string, val_list []string) (string, error) {
 	if len(param_list) != len(val_list) {
 		return "", errors.New("not same number of parameter names and values")
-	} else if len(param_list) < 1 { //no param or val
-		return "", nil //empty str, but not error
+	} else if len(param_list) < 1 { // no param or val
+		return "", nil // empty str, but not error
 	} else {
 		var param_string string = "?" + param_list[0] + "=" + val_list[0]
 		for idx, val := range param_list[1:] {
