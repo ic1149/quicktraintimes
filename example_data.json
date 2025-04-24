@@ -17,9 +17,10 @@
                     "assocIsCancelled": false
                 }
             ],
-            "std": "20:09",
+            "rsid": "SW827600",
+            "std": "22:09",
             "etd": "On time",
-            "platform": "5",
+            "platform": "4",
             "operator": "South Western Railway",
             "operatorCode": "SW",
             "isCircularRoute": false,
@@ -29,13 +30,44 @@
             "length": 0,
             "detachFront": false,
             "isReverseFormation": false,
-            "serviceID": "1182616RDNG4AB_"
+            "serviceID": "1189208RDNG4AB_"
+        },
+        {
+            "futureCancellation": false,
+            "futureDelay": false,
+            "origin": [
+                {
+                    "locationName": "Reading",
+                    "crs": "RDG",
+                    "assocIsCancelled": false
+                }
+            ],
+            "destination": [
+                {
+                    "locationName": "Newbury",
+                    "crs": "NBY",
+                    "assocIsCancelled": false
+                }
+            ],
+            "std": "22:10",
+            "etd": "On time",
+            "platform": "2",
+            "operator": "Great Western Railway",
+            "operatorCode": "GW",
+            "isCircularRoute": false,
+            "isCancelled": false,
+            "filterLocationCancelled": false,
+            "serviceType": "train",
+            "length": 0,
+            "detachFront": false,
+            "isReverseFormation": false,
+            "serviceID": "1196006RDNGSTN_"
         }
     ],
     "Xmlns": {
         "Count": 8
     },
-    "generatedAt": "2025-04-23T20:09:00.4889843+01:00",
+    "generatedAt": "2025-04-23T22:09:27.0492504+01:00",
     "locationName": "Reading",
     "crs": "RDG",
     "filterType": "to",

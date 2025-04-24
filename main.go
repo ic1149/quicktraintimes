@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -29,6 +30,10 @@ func format_params(param_list []string, val_list []string) string {
 
 }
 
+type return_data struct {
+	TrainServices []interface{} `json:"trainServices"`
+}
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -38,7 +43,7 @@ func main() {
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
 	const crs string = "RDG"
 	var params = format_params([]string{"numRows"},
-		[]string{"1"})
+		[]string{"2"})
 
 	var url string = base_url + strings.ToUpper(crs) + params
 
@@ -66,6 +71,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%s", body)
+	// fmt.Printf("%s", body)
+
+	res_struct := return_data{}
+
+	json.Unmarshal([]byte(fmt.Sprintf("%s", body)), &res_struct)
+
+	firstService := res_struct.TrainServices[0].(map[string]interface{})
+
+	dest := firstService["destination"].([]interface{})
+
+	dest_inner := dest[0].(map[string]interface{})
+
+	fmt.Println(dest_inner["crs"])
 
 }
