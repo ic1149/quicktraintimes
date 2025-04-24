@@ -43,7 +43,11 @@ func main() {
 	}
 
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
-	const crs string = "RDG"
+	var crs string
+	fmt.Print("CRS code: ")
+	fmt.Scanln(&crs)
+	crs = strings.ToUpper(strings.TrimSpace(crs))
+
 	params, err := format_params([]string{"numRows"},
 		[]string{"2"})
 
@@ -51,7 +55,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var url string = base_url + strings.ToUpper(crs) + params
+	var url string = base_url + crs + params
 
 	req, err := http.NewRequest("GET", url, nil)
 
