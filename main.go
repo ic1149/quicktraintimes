@@ -73,9 +73,12 @@ func main() {
 	}
 
 	body, err := io.ReadAll(res.Body)
-
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+	if res.StatusCode != 200 {
+		if res.StatusCode > 299 {
+			log.Fatalf("Response failed with status code: %d", res.StatusCode)
+		} else {
+			fmt.Printf("HTTP status code: %d", res.StatusCode)
+		}
 	}
 	if err != nil {
 		log.Fatal(err)
