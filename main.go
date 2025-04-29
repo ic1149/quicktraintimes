@@ -9,7 +9,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/widget"
 	"github.com/joho/godotenv"
 )
 
@@ -36,20 +39,27 @@ type return_data struct {
 	TrainServices []any `json:"trainServices"`
 }
 
-func main() {
+type train_service struct {
+	std      string
+	etd      string
+	plat     string
+	dest     string
+	operator string
+	toc      string
+}
+
+func train(crs string, nr int) []train_service {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Fatalf("Error loading .env file: %s", err)
 	}
 
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
-	var crs string
-	fmt.Print("CRS code: ")
-	fmt.Scanln(&crs)
+
 	crs = strings.ToUpper(strings.TrimSpace(crs))
 
 	params, err := format_params([]string{"numRows"},
-		[]string{"11"})
+		[]string{fmt.Sprintf("%v", nr)})
 
 	if err != nil {
 		log.Fatal(err)
@@ -90,13 +100,71 @@ func main() {
 
 	json.Unmarshal(fmt.Appendf(nil, "%s", body), &res_struct)
 
-	for idx, val := range res_struct.TrainServices {
+	services := make([]train_service, 0, len(res_struct.TrainServices))
+
+	for _, val := range res_struct.TrainServices {
 		thisService := val.(map[string]any)
 		thisDest := thisService["destination"].([]any)
 		thisDestInner := thisDest[0].(map[string]any)
 
-		fmt.Printf("%d: Platform %s for the %s (expected %s)\n", idx+1, thisService["platform"], thisService["std"], thisService["etd"])
-		fmt.Printf("%s service to %s\n\n", thisService["operator"], thisDestInner["locationName"])
+		// fmt.Printf("%d: Platform %s for the %s (expected %s)\n", idx+1, thisService["platform"], thisService["std"], thisService["etd"])
+		// fmt.Printf("%s service to %s\n\n", thisService["operator"], thisDestInner["locationName"])
+
+		var new_service_struct train_service
+		if thisService["platform"] != nil {
+			new_service_struct.plat = thisService["platform"].(string)
+		} else {
+			new_service_struct.plat = "?"
+		}
+		new_service_struct.std = thisService["std"].(string)
+		new_service_struct.etd = thisService["etd"].(string)
+		new_service_struct.operator = thisService["operator"].(string)
+		new_service_struct.dest = thisDestInner["locationName"].(string)
+		new_service_struct.toc = thisService["operatorCode"].(string)
+
+		services = append(services, new_service_struct)
 	}
+	return services
+}
+
+func refershTimes(mylabel_addr **widget.Label) {
+	const desired_len = 10
+	updated_times := train("RDG", (desired_len + 1))
+	var updated_str string = ""
+	for idx, val := range updated_times {
+		if idx >= desired_len {
+			break
+		}
+		updated_str += fmt.Sprintf("plat %s %s %s to %s expected %s", val.plat, val.toc, val.std, val.dest, val.etd) + "\n"
+	}
+	mylabel_obj := *mylabel_addr
+	mylabel_obj.SetText(updated_str)
+}
+
+func tidyUp() {
+	fmt.Println("exiting app, thank you for using Quick Train Times")
+}
+
+func main() {
+	defer tidyUp()
+
+	myapp := app.New()
+	mywin := myapp.NewWindow("Quick Train Times")
+
+	mywin.SetContent(widget.NewLabel("Welcome to Quick Train Times"))
+
+	tt_label := widget.NewLabel("train time goes here")
+	mywin.SetContent(tt_label)
+
+	refershTimes(&tt_label)
+
+	go func() {
+		for range time.Tick(time.Minute) {
+			refershTimes(&tt_label)
+		}
+	}()
+
+	mywin.Show()
+	myapp.Run()
 
 }
