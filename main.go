@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/widget"
 	"github.com/joho/godotenv"
@@ -128,6 +129,7 @@ func train(crs string, nr int) []train_service {
 }
 
 func refershTimes(mylabel_addr **widget.Label) {
+	fmt.Println("refreshing train times")
 	const desired_len = 10
 	updated_times := train("RDG", (desired_len + 1))
 	var updated_str string = ""
@@ -138,7 +140,7 @@ func refershTimes(mylabel_addr **widget.Label) {
 		updated_str += fmt.Sprintf("plat %s %s %s to %s expected %s", val.plat, val.toc, val.std, val.dest, val.etd) + "\n"
 	}
 	mylabel_obj := *mylabel_addr
-	mylabel_obj.SetText(updated_str)
+	fyne.Do(func() { mylabel_obj.SetText(updated_str) })
 }
 
 func tidyUp() {
