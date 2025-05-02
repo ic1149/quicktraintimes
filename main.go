@@ -4,17 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
-	"strings"
+	"slices"
 	"time"
 
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/widget"
-	"github.com/joho/godotenv"
 )
 
 // https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
@@ -88,15 +84,15 @@ func load_config() (string, []quick_time) {
 	return c.Dep_key, quick_times
 }
 
-func train(crs string, nr int) []train_service {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
-	}
+func train(crs string, nr int) {
+	// err := godotenv.Load(".env")
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file: %s", err)
+	// }
 
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
 
-	crs = strings.ToUpper(strings.TrimSpace(crs))
+	//crs = strings.ToUpper(strings.TrimSpace(crs))
 
 	params, err := format_params([]string{"numRows"},
 		[]string{fmt.Sprintf("%v", nr)})
@@ -105,82 +101,46 @@ func train(crs string, nr int) []train_service {
 		log.Fatal(err)
 	}
 
+	// var dep_api_key = os.Getenv("dep_key")
+	dep_api_key, qts := load_config()
+	var today int = int(time.Now().Weekday())
+	correct_time := make([]quick_time, 0)
+	for _, qt := range qts {
+		if slices.Contains(qt.Days, today) {
+			start, err := time.Parse("00:00", qt.Start)
+			if err != nil {
+				fmt.Println(err)
+			}
+			end, err := time.Parse("00:00", qt.End)
+			now := time.Now()
+			if now.After(start) && now.Before(end) {
+				correct_time = append(correct_time, qt)
+			}
+		}
+	}
+
 	var url string = base_url + crs + params
-
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		log.Fatal(err)
+	res := make([][]train_service, 0, len(correct_time))
+	for range len(correct_time) {
+		res = append(res, request(url, dep_api_key))
 	}
 
-	var dep_api_key string = os.Getenv("dep_key")
-	req.Header.Set("x-apikey", dep_api_key)
-	client := &http.Client{}
-
-	res, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	body, err := io.ReadAll(res.Body)
-	if res.StatusCode != 200 {
-		if res.StatusCode > 299 {
-			log.Fatalf("Response failed with status code: %d", res.StatusCode)
-		} else {
-			fmt.Printf("HTTP status code: %d", res.StatusCode)
-		}
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// fmt.Printf("%s", body)
-
-	res_struct := return_data{}
-
-	json.Unmarshal(fmt.Appendf(nil, "%s", body), &res_struct)
-
-	services := make([]train_service, 0, len(res_struct.TrainServices))
-
-	for _, val := range res_struct.TrainServices {
-		thisService := val.(map[string]any)
-		thisDest := thisService["destination"].([]any)
-		thisDestInner := thisDest[0].(map[string]any)
-
-		// fmt.Printf("%d: Platform %s for the %s (expected %s)\n", idx+1, thisService["platform"], thisService["std"], thisService["etd"])
-		// fmt.Printf("%s service to %s\n\n", thisService["operator"], thisDestInner["locationName"])
-
-		var new_service_struct train_service
-		if thisService["platform"] != nil {
-			new_service_struct.plat = thisService["platform"].(string)
-		} else {
-			new_service_struct.plat = "?"
-		}
-		new_service_struct.std = thisService["std"].(string)
-		new_service_struct.etd = thisService["etd"].(string)
-		new_service_struct.operator = thisService["operator"].(string)
-		new_service_struct.dest = thisDestInner["locationName"].(string)
-		new_service_struct.toc = thisService["operatorCode"].(string)
-
-		services = append(services, new_service_struct)
-	}
-	return services
 }
 
-func refershTimes(mylabel_addr **widget.Label) {
-	fmt.Println("refreshing train times")
-	const desired_len = 10
-	updated_times := train("RDG", (desired_len + 1))
-	var updated_str string = ""
-	for idx, val := range updated_times {
-		if idx >= desired_len {
-			break
-		}
-		updated_str += fmt.Sprintf("plat %s %s %s to %s expected %s", val.plat, val.toc, val.std, val.dest, val.etd) + "\n"
-	}
-	mylabel_obj := *mylabel_addr
-	fyne.Do(func() { mylabel_obj.SetText(updated_str) })
-}
+// func refershTimes(mylabel_addr **widget.Label) {
+// 	fmt.Println("refreshing train times")
+// 	const desired_len = 10
+// 	updated_times := train("RDG", (desired_len + 1))
+// 	var updated_str string = ""
+// 	for idx, val := range updated_times {
+// 		if idx >= desired_len {
+// 			break
+// 		}
+// 		updated_str += fmt.Sprintf("plat %s %s %s to %s expected %s", val.plat, val.toc, val.std, val.dest, val.etd) + "\n"
+// 	}
+// 	mylabel_obj := *mylabel_addr
+// 	fyne.Do(func() { mylabel_obj.SetText(updated_str) })
+// }
 
 func tidyUp() {
 	fmt.Println("exiting app, thank you for using Quick Train Times")
