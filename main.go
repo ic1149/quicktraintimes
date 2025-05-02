@@ -49,6 +49,45 @@ type train_service struct {
 	toc      string
 }
 
+type quick_time struct {
+	Start string
+	End   string
+	Org   string
+	Dest  string
+	Days  []int
+}
+
+type config struct {
+	Dep_key     string
+	Quick_times []any
+}
+
+func load_config() (string, []quick_time) {
+	b, err := os.ReadFile("config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	var c config
+	err = json.Unmarshal(b, &c)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	quick_times := make([]quick_time, 0, len(c.Quick_times))
+	for _, val := range c.Quick_times {
+		this_map := val.(map[string]any)
+		var this_struct quick_time
+		this_struct.Start = this_map["start"].(string)
+		this_struct.End = this_map["end"].(string)
+		this_struct.Org = this_map["org"].(string)
+		this_struct.Dest = this_map["dest"].(string)
+		this_struct.Days = this_map["days"].([]int)
+
+		quick_times = append(quick_times, this_struct)
+	}
+	return c.Dep_key, quick_times
+}
+
 func train(crs string, nr int) []train_service {
 	err := godotenv.Load(".env")
 	if err != nil {
