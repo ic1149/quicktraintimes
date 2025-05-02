@@ -7,6 +7,12 @@ import (
 	"net/http"
 )
 
+// this code file handles api
+
+// https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
+// https://api1.raildata.org.uk/1010-live-arrival-board-arr/LDBWS/api/20220120/GetArrBoardWithDetails/RDG
+// https://api1.raildata.org.uk/1010-service-details1_2/LDBWS/api/20220120/GetServiceDetails/{serviceid}
+
 func request(url, key string) []train_service {
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -14,7 +20,7 @@ func request(url, key string) []train_service {
 		fmt.Println(err)
 	}
 
-	req.Header.Set("x-apikey", key)
+	req.Header.Set("x-apikey", key) // put api key in header
 	client := &http.Client{}
 
 	res, err := client.Do(req)
@@ -56,6 +62,7 @@ func request(url, key string) []train_service {
 		} else {
 			new_service_struct.plat = "?"
 		}
+		// put data into defined structs
 		new_service_struct.std = thisService["std"].(string)
 		new_service_struct.etd = thisService["etd"].(string)
 		new_service_struct.operator = thisService["operator"].(string)

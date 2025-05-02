@@ -13,10 +13,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-// https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
-// https://api1.raildata.org.uk/1010-live-arrival-board-arr/LDBWS/api/20220120/GetArrBoardWithDetails/RDG
-// https://api1.raildata.org.uk/1010-service-details1_2/LDBWS/api/20220120/GetServiceDetails/{serviceid}
-
+// ?sth=idk&thing=idk_either
 func format_params(param_list []string, val_list []string) (string, error) {
 	if len(param_list) != len(val_list) {
 		return "", errors.New("not same number of parameter names and values")
@@ -32,10 +29,12 @@ func format_params(param_list []string, val_list []string) (string, error) {
 
 }
 
+// catch the api
 type return_data struct {
 	TrainServices []any `json:"trainServices"`
 }
 
+// needed data for each train service
 type train_service struct {
 	std      string
 	etd      string
@@ -45,6 +44,7 @@ type train_service struct {
 	toc      string
 }
 
+// catch quick time json settings
 type quick_time struct {
 	Start string
 	End   string
@@ -53,11 +53,13 @@ type quick_time struct {
 	Days  []int
 }
 
+// catch config.json
 type config struct {
 	Dep_key     string
 	Quick_times []any
 }
 
+// load data from config.json
 func load_config() (string, []quick_time) {
 	b, err := os.ReadFile("config.json")
 	if err != nil {
@@ -86,6 +88,7 @@ func load_config() (string, []quick_time) {
 	return c.Dep_key, quick_times
 }
 
+// use configured data to get data of train services
 func trains() ([][]train_service, []string) {
 	// err := godotenv.Load(".env")
 	// if err != nil {
@@ -140,6 +143,7 @@ func trains() ([][]train_service, []string) {
 	return res, f_t_list
 }
 
+// update main label (get data + gui)
 func refershTimes(mylabel_addr **widget.Label) {
 	fmt.Println("refreshing train times")
 	const desired_len = 10
@@ -167,6 +171,7 @@ func tidyUp() {
 }
 
 func main() {
+	// run when exiting
 	defer tidyUp()
 
 	myapp := app.New()
@@ -180,6 +185,7 @@ func main() {
 	refershTimes(&tt_label)
 
 	go func() {
+		// every minute
 		for range time.Tick(time.Minute) {
 			refershTimes(&tt_label)
 		}
