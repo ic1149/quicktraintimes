@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -12,7 +11,7 @@ func request(url, key string) []train_service {
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	req.Header.Set("x-apikey", key)
@@ -20,19 +19,19 @@ func request(url, key string) []train_service {
 
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	body, err := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		if res.StatusCode > 299 {
-			log.Fatalf("Response failed with status code: %d", res.StatusCode)
+			fmt.Printf("Response failed with status code: %d\n", res.StatusCode)
 		} else {
 			fmt.Printf("HTTP status code: %d", res.StatusCode)
 		}
 	}
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 
 	// fmt.Printf("%s", body)
