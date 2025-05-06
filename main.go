@@ -46,17 +46,17 @@ type train_service struct {
 
 // catch quick time json settings
 type quick_time struct {
-	Start string
-	End   string
-	Org   string
-	Dest  string
-	Days  []int
+	start string
+	end   string
+	org   string
+	dest  string
+	days  []int
 }
 
 // catch config.json
 type config struct {
-	Dep_key     string
-	Quick_times []any
+	Dep_key     string `json:"dep_key"`
+	Quick_times []any  `json:"quick_times"`
 }
 
 // load data from config.json
@@ -75,12 +75,12 @@ func load_config() (string, []quick_time) {
 	for _, val := range c.Quick_times {
 		this_map := val.(map[string]any)
 		var this_struct quick_time
-		this_struct.Start = this_map["start"].(string)
-		this_struct.End = this_map["end"].(string)
-		this_struct.Org = this_map["org"].(string)
-		this_struct.Dest = this_map["dest"].(string)
+		this_struct.start = this_map["start"].(string)
+		this_struct.end = this_map["end"].(string)
+		this_struct.org = this_map["org"].(string)
+		this_struct.dest = this_map["dest"].(string)
 		for _, val := range this_map["days"].([]any) {
-			this_struct.Days = append(this_struct.Days, int(val.(float64)))
+			this_struct.days = append(this_struct.days, int(val.(float64)))
 		}
 
 		quick_times = append(quick_times, this_struct)
@@ -109,12 +109,12 @@ func trains() ([][]train_service, []string) {
 	date_only := now.Format(time.RFC822)
 	date_only = date_only[0:10]
 	for _, qt := range qts {
-		if slices.Contains(qt.Days, today) {
-			start, err := time.Parse(time.RFC822, date_only+qt.Start+current_tz)
+		if slices.Contains(qt.days, today) {
+			start, err := time.Parse(time.RFC822, date_only+qt.start+current_tz)
 			if err != nil {
 				fmt.Println(err)
 			}
-			end, err := time.Parse(time.RFC822, date_only+qt.End+current_tz)
+			end, err := time.Parse(time.RFC822, date_only+qt.end+current_tz)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -131,14 +131,14 @@ func trains() ([][]train_service, []string) {
 	f_t_list := make([]string, 0, len(correct_time))
 	for _, v := range correct_time {
 		params, err := format_params([]string{"filterCrs", "filterType"},
-			[]string{v.Dest, "to"})
+			[]string{v.dest, "to"})
 
 		if err != nil {
 			fmt.Println(err)
 		}
-		var url string = base_url + v.Org + params
+		var url string = base_url + v.org + params
 		res = append(res, request(url, dep_api_key))
-		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
+		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.org, v.dest))
 	}
 	return res, f_t_list
 }
