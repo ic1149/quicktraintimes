@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"slices"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -59,6 +61,105 @@ type config struct {
 	Quick_times []any  `json:"quick_times"`
 }
 
+type TableConfig struct {
+	Data               [][]string // The actual data for the table cells
+	ColHeaderTexts     []string   // Texts for the column headers
+	RowHeaderTexts     []string   // Texts for the row headers
+	CellTemplateText   string     // Placeholder text for data cell templates
+	HeaderTemplateText string     // Placeholder text for header cell templates
+	CornerHeaderText   string     // Text for the top-left corner header cell
+}
+
+func NewTableConfig(data [][]string, colHeaders []string, rowHeaders []string) *TableConfig {
+	return &TableConfig{
+		Data:               data,
+		ColHeaderTexts:     colHeaders,
+		RowHeaderTexts:     rowHeaders,
+		CellTemplateText:   "Cell Data",   // Default placeholder for data cells
+		HeaderTemplateText: "Header Info", // Default placeholder for header cells
+		CornerHeaderText:   "",            // Default for corner (often empty or "No.")
+	}
+}
+
+func (tc *TableConfig) BuildTable() *widget.Table {
+	// Basic validation for data
+	if tc.Data == nil {
+		log.Println("Warning: TableConfig.Data is nil. Creating an empty table.")
+		tc.Data = [][]string{} // Ensure Data is not nil to prevent panics later
+	}
+
+	// DataFunc: Returns the number of rows and columns in the table.
+	// This is crucial for the table to know how many rows to expect.
+	dataFunc := func() (int, int) {
+		if len(tc.Data) == 0 {
+			return 0, 0 // No data, so 0 rows and 0 columns.
+		}
+		// The number of rows is the length of the outer slice.
+		// The number of columns is assumed from the length of the first row.
+		// Ensure your data is consistent (all rows have the same number of columns).
+		return len(tc.Data), len(tc.Data[0])
+	}
+
+	// CreateCellFunc: Called once to create a template fyne.CanvasObject for data cells.
+	createCellFunc := func() fyne.CanvasObject {
+		return widget.NewLabel(tc.CellTemplateText)
+	}
+
+	// UpdateCellFunc: Called to update the content of a data cell.
+	updateCellFunc := func(id widget.TableCellID, cell fyne.CanvasObject) {
+		label := cell.(*widget.Label)
+		// Protect against out-of-bounds access to tc.Data
+		// This ensures that if data is missing for a cell, it defaults to empty.
+		if id.Row >= 0 && id.Row < len(tc.Data) &&
+			id.Col >= 0 && id.Col < len(tc.Data[id.Row]) {
+			label.SetText(tc.Data[id.Row][id.Col])
+		} else {
+			label.SetText("") // Default to empty if data is out of bounds
+		}
+	}
+
+	// Create the table using widget.NewTable.
+	table := widget.NewTable(dataFunc, createCellFunc, updateCellFunc)
+
+	// Manually enable header visibility.
+	// widget.NewTableWithHeaders would do this, along with setting sticky headers.
+	table.ShowHeaderRow = true
+	table.ShowHeaderColumn = true
+
+	// Customize the header creation and update logic.
+	// CreateHeader is called to create a template for header cells.
+	table.CreateHeader = func() fyne.CanvasObject {
+		return widget.NewLabel(tc.HeaderTemplateText)
+	}
+
+	// UpdateHeader is called to set the content of each specific header cell.
+	table.UpdateHeader = func(id widget.TableCellID, template fyne.CanvasObject) {
+		label := template.(*widget.Label)
+
+		// id.Row == -1 && id.Col == -1: Top-left corner header cell
+		// id.Row == -1 && id.Col >= 0: Column header cell
+		// id.Col == -1 && id.Row >= 0: Row header cell
+
+		if id.Row == -1 && id.Col == -1 { // Corner cell
+			label.SetText(tc.CornerHeaderText)
+		} else if id.Row == -1 { // Column headers
+			if id.Col >= 0 && id.Col < len(tc.ColHeaderTexts) {
+				label.SetText(tc.ColHeaderTexts[id.Col])
+			} else {
+				label.SetText("") // Fallback if no header text defined
+			}
+		} else if id.Col == -1 { // Row headers
+			if id.Row >= 0 && id.Row < len(tc.RowHeaderTexts) {
+				label.SetText(tc.RowHeaderTexts[id.Row])
+			} else {
+				label.SetText("") // Fallback if no header text defined
+			}
+		}
+	}
+
+	return table
+}
+
 // load data from config.json
 func load_config() (string, []quick_time) {
 	b, err := os.ReadFile("config.json")
@@ -89,7 +190,7 @@ func load_config() (string, []quick_time) {
 }
 
 // use configured data to get data of train services
-func trains() ([][]train_service, []string) {
+func trains() ([][]train_service, []string, int) {
 	// err := godotenv.Load(".env")
 	// if err != nil {
 	// 	log.Fatalf("Error loading .env file: %s", err)
@@ -130,7 +231,7 @@ func trains() ([][]train_service, []string) {
 		}
 	}
 	if len(correct_time) == 0 {
-		return nil, nil
+		return nil, nil, 0
 	}
 	res := make([][]train_service, 0, len(correct_time))
 	f_t_list := make([]string, 0, len(correct_time))
@@ -145,30 +246,75 @@ func trains() ([][]train_service, []string) {
 		res = append(res, request(url, dep_api_key))
 		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.org, v.dest))
 	}
-	return res, f_t_list
+	return res, f_t_list, correct_count
 }
 
 // update main label (get data + gui)
-func refershTimes(mylabel_addr **widget.Label) {
+func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window) {
 	fmt.Println("refreshing train times")
-	const desired_len = 10
-	updated_times_s, f_t_list := trains()
-	if updated_times_s == nil {
-		fmt.Println("not in specified time frames")
+	const desired_len = 5
+	updated_times_s, f_t_list, correct_count := trains()
+
+	mywin_obj := *mywin_addr
+	colHeaders := []string{"Plat", "TOC", "STD", "Dest", "ETD"}
+	var rowHeaders []string
+	for i := range desired_len {
+		rowHeaders = append(rowHeaders, fmt.Sprintf("%v", i+1))
 	}
-	var updated_str string = ""
-	for idx, updated_times := range updated_times_s {
-		updated_str += f_t_list[idx] + "\n"
-		for idx, val := range updated_times {
-			if idx >= desired_len {
-				break
-			}
-			updated_str += fmt.Sprintf("plat %s %s %s to %s expected %s", val.plat, val.toc, val.std, val.dest, val.etd) + "\n"
+	switch correct_count {
+	case 0:
+		mylabel_obj := *mylabel_addr
+		fyne.Do(func() {
+			mywin_obj.SetContent(mylabel_obj)
+			mylabel_obj.SetText("not in specified time frames")
+		})
+	case 1:
+		var data [][]string
+		var datarow []string
+		for _, val := range updated_times_s[0] {
+			datarow = nil
+			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
+			data = append(data, datarow)
 		}
-		updated_str += "\n"
+
+		config := NewTableConfig(data, colHeaders, rowHeaders)
+		config.CellTemplateText = "?"
+		table := config.BuildTable()
+		fyne.Do(func() {
+			mywin_obj.SetContent(container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
+		})
+
+	case 2:
+		var data [][]string
+		var datarow []string
+		for _, val := range updated_times_s[0] {
+			datarow = nil
+			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
+			data = append(data, datarow)
+		}
+
+		config := NewTableConfig(data, colHeaders, rowHeaders)
+		config.CellTemplateText = "N/A"
+		table := config.BuildTable()
+
+		var data2 [][]string
+		var datarow2 []string
+		for _, val := range updated_times_s[1] {
+			datarow2 = nil
+			datarow2 = append(datarow2, val.plat, val.toc, val.std, val.dest, val.etd)
+			data2 = append(data2, datarow2)
+		}
+
+		config2 := NewTableConfig(data2, colHeaders, rowHeaders)
+		config2.CellTemplateText = "N/A"
+		table2 := config2.BuildTable()
+		fyne.Do(func() {
+			mywin_obj.SetContent(container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2))))
+		})
+	default:
+		log.Fatalf("incorrect number of correct times (%v)", correct_count)
 	}
-	mylabel_obj := *mylabel_addr
-	fyne.Do(func() { mylabel_obj.SetText(updated_str) })
+
 }
 
 func tidyUp() {
@@ -182,20 +328,17 @@ func main() {
 	myapp := app.New()
 	mywin := myapp.NewWindow("Quick Train Times")
 
-	mywin.SetContent(widget.NewLabel("Welcome to Quick Train Times"))
-
-	tt_label := widget.NewLabel("train time goes here")
-	mywin.SetContent(tt_label)
-
-	refershTimes(&tt_label)
+	placeholder := widget.NewLabel("train times go here")
+	mywin.SetContent(placeholder)
+	refershTimes(&placeholder, &mywin)
 
 	go func() {
 		// every minute
 		for range time.Tick(time.Minute) {
-			refershTimes(&tt_label)
+			refershTimes(&placeholder, &mywin)
 		}
 	}()
-
+	mywin.Resize(fyne.NewSize(640, 640))
 	mywin.Show()
 	myapp.Run()
 

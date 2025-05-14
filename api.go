@@ -66,7 +66,7 @@ func request(url, key string) []train_service {
 		new_service_struct.std = thisService["std"].(string)
 		new_service_struct.etd = thisService["etd"].(string)
 		new_service_struct.operator = thisService["operator"].(string)
-		new_service_struct.dest = thisDestInner["locationName"].(string)
+		new_service_struct.dest = thisDestInner["crs"].(string)
 		new_service_struct.toc = thisService["operatorCode"].(string)
 
 		services = append(services, new_service_struct)
