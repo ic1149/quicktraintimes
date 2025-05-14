@@ -108,6 +108,7 @@ func trains() ([][]train_service, []string) {
 	current_tz = " " + current_tz
 	date_only := now.Format(time.RFC822)
 	date_only = date_only[0:10]
+	var correct_count int
 	for _, qt := range qts {
 		if slices.Contains(qt.days, today) {
 			start, err := time.Parse(time.RFC822, date_only+qt.start+current_tz)
@@ -121,6 +122,10 @@ func trains() ([][]train_service, []string) {
 
 			if now.After(start) && now.Before(end) {
 				correct_time = append(correct_time, qt)
+				correct_count++
+				if correct_count >= 2 {
+					break
+				}
 			}
 		}
 	}
