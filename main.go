@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -250,12 +251,19 @@ func trains() ([][]train_service, []string, int) {
 }
 
 // update main label (get data + gui)
-func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window) {
+func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window, hometab_addr **container.TabItem, apptabs_addr **container.AppTabs) {
+	apptabs_obj := *apptabs_addr
+	if apptabs_obj.SelectedIndex() != 0 {
+		return
+	}
+
 	fmt.Println("refreshing train times")
 	const desired_len = 5
 	updated_times_s, f_t_list, correct_count := trains()
 
 	mywin_obj := *mywin_addr
+	hometab_obj := *hometab_addr
+
 	colHeaders := []string{"Plat", "TOC", "STD", "Dest", "ETD"}
 	var rowHeaders []string
 	for i := range desired_len {
@@ -265,8 +273,8 @@ func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window) {
 	case 0:
 		mylabel_obj := *mylabel_addr
 		fyne.Do(func() {
-			mywin_obj.SetContent(mylabel_obj)
 			mylabel_obj.SetText("not in specified time frames")
+			hometab_obj.Content = mylabel_obj
 		})
 	case 1:
 		var data [][]string
@@ -281,7 +289,7 @@ func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window) {
 		config.CellTemplateText = "?"
 		table := config.BuildTable()
 		fyne.Do(func() {
-			mywin_obj.SetContent(container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
+			hometab_obj.Content = container.NewScroll(widget.NewCard(f_t_list[0], "", table))
 		})
 
 	case 2:
@@ -309,10 +317,10 @@ func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window) {
 		config2.CellTemplateText = "N/A"
 		table2 := config2.BuildTable()
 		fyne.Do(func() {
-			mywin_obj.SetContent(container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2))))
+			hometab_obj.Content = container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2)))
 		})
 	default:
-		log.Fatalf("incorrect number of correct times (%v)", correct_count)
+		dialog.ShowConfirm("something went wrong", fmt.Sprintf("incorrect number of correct times (%v)", correct_count), nil, mywin_obj)
 	}
 
 }
@@ -329,15 +337,32 @@ func main() {
 	mywin := myapp.NewWindow("Quick Train Times")
 
 	placeholder := widget.NewLabel("train times go here")
-	mywin.SetContent(placeholder)
-	refershTimes(&placeholder, &mywin)
+	home_tab := container.NewTabItem("Home", placeholder)
+	settings_tab := container.NewTabItem("Settings", widget.NewLabel("settings will be here"))
+	config_tab := container.NewTabItem("Config QTTs", widget.NewLabel("config quick train times"))
+	mytabs := container.NewAppTabs(home_tab, settings_tab, config_tab)
+	mywin.SetContent(mytabs)
+	refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
+	mywin.SetContent(mytabs)
+
+	mytabs.OnSelected = func(selectedTab *container.TabItem) {
+		if mytabs.SelectedIndex() == 0 {
+			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
+			fyne.Do(func() { mywin.SetContent(mytabs) })
+		} else {
+			placeholder.SetText("getting train times")
+			home_tab.Content = placeholder
+		}
+	}
 
 	go func() {
 		// every minute
-		for range time.Tick(time.Minute) {
-			refershTimes(&placeholder, &mywin)
+		for range time.Tick(time.Second * 10) {
+			refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
+			fyne.Do(func() { mywin.SetContent(mytabs) })
 		}
 	}()
+
 	mywin.Resize(fyne.NewSize(640, 640))
 	mywin.Show()
 	myapp.Run()
