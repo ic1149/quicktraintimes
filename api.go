@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,22 @@ import (
 // https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
 // https://api1.raildata.org.uk/1010-live-arrival-board-arr/LDBWS/api/20220120/GetArrBoardWithDetails/RDG
 // https://api1.raildata.org.uk/1010-service-details1_2/LDBWS/api/20220120/GetServiceDetails/{serviceid}
+
+// ?sth=idk&thing=idk_either
+func format_params(param_list []string, val_list []string) (string, error) {
+	if len(param_list) != len(val_list) {
+		return "", errors.New("not same number of parameter names and values")
+	} else if len(param_list) < 1 { // no param or val
+		return "", nil // empty str, but not error
+	} else {
+		var param_string string = "?" + param_list[0] + "=" + val_list[0]
+		for idx, val := range param_list[1:] {
+			param_string += "&" + val + "=" + val_list[idx]
+		}
+		return param_string, nil
+	}
+
+}
 
 func request(url, key string) []train_service {
 	req, err := http.NewRequest("GET", url, nil)

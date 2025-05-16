@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -15,22 +14,6 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 )
-
-// ?sth=idk&thing=idk_either
-func format_params(param_list []string, val_list []string) (string, error) {
-	if len(param_list) != len(val_list) {
-		return "", errors.New("not same number of parameter names and values")
-	} else if len(param_list) < 1 { // no param or val
-		return "", nil // empty str, but not error
-	} else {
-		var param_string string = "?" + param_list[0] + "=" + val_list[0]
-		for idx, val := range param_list[1:] {
-			param_string += "&" + val + "=" + val_list[idx]
-		}
-		return param_string, nil
-	}
-
-}
 
 // catch the api
 type return_data struct {
@@ -56,9 +39,8 @@ type quick_time struct {
 	Days  []int  `json:"days"`
 }
 
-// catch config.json
+// catch qtt.json
 type config struct {
-	Dep_key     string       `json:"dep_key"`
 	Quick_times []quick_time `json:"quick_times"`
 }
 
@@ -161,9 +143,29 @@ func (tc *TableConfig) BuildTable() *widget.Table {
 	return table
 }
 
-// load data from config.json
-func load_config() (string, []quick_time) {
-	b, err := os.ReadFile("config.json")
+type settings struct {
+	Freq float64 `json:"freq"`
+	Key  string  `json:"key"`
+}
+
+func load_settings() settings {
+	var s settings
+	b, err := os.ReadFile("settings.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	json.Unmarshal(b, &s)
+	return s
+}
+
+func load_key() string {
+	var s settings = load_settings()
+	return s.Key
+}
+
+// load data from qtt.json
+func load_qtt() []quick_time {
+	b, err := os.ReadFile("qtt.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -187,7 +189,7 @@ func load_config() (string, []quick_time) {
 
 	// 	quick_times = append(quick_times, this_struct)
 	// }
-	return c.Dep_key, c.Quick_times
+	return c.Quick_times
 }
 
 // use configured data to get data of train services
@@ -202,7 +204,7 @@ func trains() ([][]train_service, []string, int) {
 	//crs = strings.ToUpper(strings.TrimSpace(crs))
 
 	// var dep_api_key = os.Getenv("dep_key")
-	dep_api_key, qts := load_config()
+	dep_api_key, qts := load_key(), load_qtt()
 	now := time.Now()
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
