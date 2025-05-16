@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"slices"
+	"strconv"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -148,21 +150,6 @@ type settings struct {
 	Key  string  `json:"key"`
 }
 
-func load_settings() settings {
-	var s settings
-	b, err := os.ReadFile("settings.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	json.Unmarshal(b, &s)
-	return s
-}
-
-func load_key() string {
-	var s settings = load_settings()
-	return s.Key
-}
-
 // load data from qtt.json
 func load_qtt() []quick_time {
 	b, err := os.ReadFile("qtt.json")
@@ -175,36 +162,18 @@ func load_qtt() []quick_time {
 		fmt.Println(err)
 	}
 
-	// quick_times := make([]quick_time, 0, len(c.Quick_times))
-	// for _, val := range c.Quick_times {
-	// 	this_map := val.(map[string]any)
-	// 	var this_struct quick_time
-	// 	this_struct.start = this_map["start"].(string)
-	// 	this_struct.end = this_map["end"].(string)
-	// 	this_struct.org = this_map["org"].(string)
-	// 	this_struct.dest = this_map["dest"].(string)
-	// 	for _, val := range this_map["days"].([]any) {
-	// 		this_struct.days = append(this_struct.days, int(val.(float64)))
-	// 	}
-
-	// 	quick_times = append(quick_times, this_struct)
-	// }
 	return c.Quick_times
 }
 
 // use configured data to get data of train services
-func trains() ([][]train_service, []string, int) {
-	// err := godotenv.Load(".env")
-	// if err != nil {
-	// 	log.Fatalf("Error loading .env file: %s", err)
-	// }
-
+func trains(key string) ([][]train_service, []string, int, error) {
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
 
 	//crs = strings.ToUpper(strings.TrimSpace(crs))
 
 	// var dep_api_key = os.Getenv("dep_key")
-	dep_api_key, qts := load_key(), load_qtt()
+	qts := load_qtt()
+
 	now := time.Now()
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
@@ -234,7 +203,7 @@ func trains() ([][]train_service, []string, int) {
 		}
 	}
 	if len(correct_time) == 0 {
-		return nil, nil, 0
+		return nil, nil, 0, nil
 	}
 	res := make([][]train_service, 0, len(correct_time))
 	f_t_list := make([]string, 0, len(correct_time))
@@ -246,24 +215,37 @@ func trains() ([][]train_service, []string, int) {
 			fmt.Println(err)
 		}
 		var url string = base_url + v.Org + params
-		res = append(res, request(url, dep_api_key))
+		res = append(res, request(url, key))
 		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
 	}
-	return res, f_t_list, correct_count
+	return res, f_t_list, correct_count, nil
 }
 
 // update main label (get data + gui)
-func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window, hometab_addr **container.TabItem, apptabs_addr **container.AppTabs) {
+func refershTimes(mylabel_addr **widget.Label,
+	mywin_addr *fyne.Window,
+	hometab_addr **container.TabItem,
+	apptabs_addr **container.AppTabs,
+	key string) {
 	apptabs_obj := *apptabs_addr
 	if apptabs_obj.SelectedIndex() != 0 {
 		return
 	}
 
 	fmt.Println("refreshing train times")
-	const desired_len = 5
-	updated_times_s, f_t_list, correct_count := trains()
+	mylabel_obj := *mylabel_addr
+	fyne.Do(func() {
+		mylabel_obj.SetText("refreshing train times")
+	})
 
+	const desired_len = 5
 	mywin_obj := *mywin_addr
+
+	updated_times_s, f_t_list, correct_count, err := trains(key)
+	if err != nil {
+		dialog.NewError(err, mywin_obj)
+	}
+
 	hometab_obj := *hometab_addr
 
 	colHeaders := []string{"Plat", "TOC", "STD", "Dest", "ETD"}
@@ -319,7 +301,8 @@ func refershTimes(mylabel_addr **widget.Label, mywin_addr *fyne.Window, hometab_
 		config2.CellTemplateText = "N/A"
 		table2 := config2.BuildTable()
 		fyne.Do(func() {
-			hometab_obj.Content = container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2)))
+			mylabel_obj.SetText("")
+			hometab_obj.Content = container.NewBorder(*mylabel_addr, nil, nil, nil, container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2))))
 		})
 	default:
 		dialog.ShowConfirm("something went wrong", fmt.Sprintf("incorrect number of correct times (%v)", correct_count), nil, mywin_obj)
@@ -335,21 +318,84 @@ func main() {
 	// run when exiting
 	defer tidyUp()
 
-	myapp := app.New()
+	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
 
 	placeholder := widget.NewLabel("train times go here")
-	home_tab := container.NewTabItem("Home", placeholder)
-	settings_tab := container.NewTabItem("Settings", widget.NewLabel("settings will be here"))
+	home_border := container.NewBorder(placeholder, nil, nil, nil, nil)
+	home_tab := container.NewTabItem("Home", home_border)
+
+	rootURI := myapp.Storage().RootURI()
+
+	entry_freq := widget.NewEntry()
+	entry_freq.SetPlaceHolder("in seconds")
+
+	entry_freq.Validator = func(s string) error {
+		num, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return errors.New("not a number")
+		} else if num <= 0 {
+			return errors.New("number must be positive")
+		} else {
+			return nil
+		}
+	}
+
+	entry_key := widget.NewEntry()
+	entry_key.SetPlaceHolder("48 character long key")
+
+	entry_key.Validator = func(s string) error {
+		if len(s) != 48 {
+			return errors.New("invalid key")
+		} else {
+			return nil
+		}
+	}
+
+	existing_settings, err := load_json("settings.json", rootURI)
+	if err != nil {
+		dialog.NewError(err, mywin)
+	}
+
+	entry_freq.SetText(fmt.Sprint(existing_settings.Freq))
+	entry_key.SetText(existing_settings.Key)
+
+	form := &widget.Form{
+		Items: nil,
+		OnSubmit: func() { // optional, handle form submission
+			var s settings
+			s.Freq, err = strconv.ParseFloat(entry_freq.Text, 64)
+			s.Key = entry_key.Text
+			err := save_json(s, "settings.json", rootURI)
+			if err != nil {
+				dialog.ShowError(err, mywin)
+			} else {
+				dialog.ShowInformation("Info", "Settings saved successfully. Not effective until program restart.", mywin)
+			}
+		},
+		OnCancel: func() {
+			entry_freq.SetText(fmt.Sprint(existing_settings.Freq))
+			entry_key.SetText(existing_settings.Key)
+		},
+	}
+
+	// we can also append items
+	form.Append("Refresh Frequency (secs)", entry_freq)
+	form.Append("Departure API Key", entry_key)
+	form.SubmitText = "Save"
+
+	con := container.NewBorder(nil, widget.NewLabel("Changes will be applied next time starting the program."), nil, nil, form)
+	settings_tab := container.NewTabItem("Settings", con)
+
 	config_tab := container.NewTabItem("Config QTTs", widget.NewLabel("config quick train times"))
+
 	mytabs := container.NewAppTabs(home_tab, settings_tab, config_tab)
 	mywin.SetContent(mytabs)
-	refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
-	mywin.SetContent(mytabs)
+	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key)
 
 	mytabs.OnSelected = func(selectedTab *container.TabItem) {
 		if mytabs.SelectedIndex() == 0 {
-			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
+			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		} else {
 			placeholder.SetText("getting train times")
@@ -359,8 +405,8 @@ func main() {
 
 	go func() {
 		// every minute
-		for range time.Tick(time.Second * 10) {
-			refershTimes(&placeholder, &mywin, &home_tab, &mytabs)
+		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
+			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		}
 	}()
