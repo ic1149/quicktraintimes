@@ -49,17 +49,17 @@ type train_service struct {
 
 // catch quick time json settings
 type quick_time struct {
-	start string
-	end   string
-	org   string
-	dest  string
-	days  []int
+	Start string `json:"start"`
+	End   string `json:"end"`
+	Org   string `json:"org"`
+	Dest  string `json:"dest"`
+	Days  []int  `json:"days"`
 }
 
 // catch config.json
 type config struct {
-	Dep_key     string `json:"dep_key"`
-	Quick_times []any  `json:"quick_times"`
+	Dep_key     string       `json:"dep_key"`
+	Quick_times []quick_time `json:"quick_times"`
 }
 
 type TableConfig struct {
@@ -173,21 +173,21 @@ func load_config() (string, []quick_time) {
 		fmt.Println(err)
 	}
 
-	quick_times := make([]quick_time, 0, len(c.Quick_times))
-	for _, val := range c.Quick_times {
-		this_map := val.(map[string]any)
-		var this_struct quick_time
-		this_struct.start = this_map["start"].(string)
-		this_struct.end = this_map["end"].(string)
-		this_struct.org = this_map["org"].(string)
-		this_struct.dest = this_map["dest"].(string)
-		for _, val := range this_map["days"].([]any) {
-			this_struct.days = append(this_struct.days, int(val.(float64)))
-		}
+	// quick_times := make([]quick_time, 0, len(c.Quick_times))
+	// for _, val := range c.Quick_times {
+	// 	this_map := val.(map[string]any)
+	// 	var this_struct quick_time
+	// 	this_struct.start = this_map["start"].(string)
+	// 	this_struct.end = this_map["end"].(string)
+	// 	this_struct.org = this_map["org"].(string)
+	// 	this_struct.dest = this_map["dest"].(string)
+	// 	for _, val := range this_map["days"].([]any) {
+	// 		this_struct.days = append(this_struct.days, int(val.(float64)))
+	// 	}
 
-		quick_times = append(quick_times, this_struct)
-	}
-	return c.Dep_key, quick_times
+	// 	quick_times = append(quick_times, this_struct)
+	// }
+	return c.Dep_key, c.Quick_times
 }
 
 // use configured data to get data of train services
@@ -212,12 +212,12 @@ func trains() ([][]train_service, []string, int) {
 	date_only = date_only[0:10]
 	var correct_count int
 	for _, qt := range qts {
-		if slices.Contains(qt.days, today) {
-			start, err := time.Parse(time.RFC822, date_only+qt.start+current_tz)
+		if slices.Contains(qt.Days, today) {
+			start, err := time.Parse(time.RFC822, date_only+qt.Start+current_tz)
 			if err != nil {
 				fmt.Println(err)
 			}
-			end, err := time.Parse(time.RFC822, date_only+qt.end+current_tz)
+			end, err := time.Parse(time.RFC822, date_only+qt.End+current_tz)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -238,14 +238,14 @@ func trains() ([][]train_service, []string, int) {
 	f_t_list := make([]string, 0, len(correct_time))
 	for _, v := range correct_time {
 		params, err := format_params([]string{"filterCrs", "filterType"},
-			[]string{v.dest, "to"})
+			[]string{v.Dest, "to"})
 
 		if err != nil {
 			fmt.Println(err)
 		}
-		var url string = base_url + v.org + params
+		var url string = base_url + v.Org + params
 		res = append(res, request(url, dep_api_key))
-		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.org, v.dest))
+		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
 	}
 	return res, f_t_list, correct_count
 }
