@@ -33,55 +33,59 @@ func save_json(mystruct any, fname string, rootURI fyne.URI) error {
 	return nil
 }
 
-func load_json(fname string, rootURI fyne.URI) (settings, error) {
-	var mysettings settings
-	mysettings.Freq = 60
-	mysettings.Key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+func load_json(fname string, rootURI fyne.URI) (settings, qtt, error) {
+	default_strs := map[string]string{
+		"settings.json": `{"freq":60, "key":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`,
+		"qtt.json":      `{"quick_times":[{}]}`,
+	}
+	mysettings := settings{Freq: 60, Key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+	myqtt := qtt{Quick_times: make([]quick_time, 0), del_ids: make([]int, 0)}
+
 	myURI, err := storage.Child(rootURI, fname)
 	if err != nil {
-		return mysettings, err
+		return mysettings, myqtt, err
 	}
 
 	exists, err := storage.Exists(myURI)
 	if err != nil {
-		return mysettings, err
+		return mysettings, myqtt, err
 	}
 
 	if !exists {
 		// If the file does not exist, create it and write the default content
-		defaultStr := `{
-    "freq":60,
-    "key":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-}` // Your default JSON string
-
 		writeCloser, err := storage.Writer(myURI)
 		if err != nil {
-			return mysettings, err
+			return mysettings, myqtt, err
 		}
 		defer writeCloser.Close()
 
-		_, err = io.WriteString(writeCloser, defaultStr)
+		_, err = io.WriteString(writeCloser, default_strs[fname])
 		if err != nil {
-			return mysettings, err
+			return mysettings, myqtt, err
 		}
-		return mysettings, nil
+		return mysettings, myqtt, nil
 	} else {
 
 		// Example of reading the existing file:
 		readCloser, err := storage.Reader(myURI)
 		if err != nil {
-			return mysettings, err
+			return mysettings, myqtt, err
 		}
 		defer readCloser.Close()
 
 		content, err := io.ReadAll(readCloser)
 		if err != nil {
-			return mysettings, err
+			return mysettings, myqtt, err
 		}
-		err = json.Unmarshal(content, &mysettings)
+		switch fname {
+		case "settings.json":
+			err = json.Unmarshal(content, &mysettings)
+		case "qtt.json":
+			err = json.Unmarshal(content, &myqtt)
+		}
 		if err != nil {
-			return mysettings, err
+			return mysettings, myqtt, err
 		}
-		return mysettings, nil
+		return mysettings, myqtt, nil
 	}
 }

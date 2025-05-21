@@ -1,11 +1,11 @@
 {
     "quick_times": [
-        {   
-            "id":1,
-            "start": "06:30",
-            "end": "19:30",
-            "org": "RDG",
-            "dest": "WNS",
+        {
+            "id": 2,
+            "start": "10:00",
+            "end": "16:30",
+            "org": "WNS",
+            "dest": "RDG",
             "days": [
                 1,
                 2,
@@ -15,11 +15,21 @@
             ]
         },
         {
-            "id":2,
-            "start": "10:00",
-            "end": "16:30",
-            "org": "WNS",
-            "dest": "RDG",
+            "id": 892,
+            "start": "06:00",
+            "end": "12:00",
+            "org": "PAD",
+            "dest": "NBY",
+            "days": [
+                3
+            ]
+        },
+        {
+            "id": 1,
+            "start": "06:30",
+            "end": "10:30",
+            "org": "RDG",
+            "dest": "WNS",
             "days": [
                 1,
                 2,
