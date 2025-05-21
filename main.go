@@ -361,7 +361,6 @@ func main() {
 	entry_key.SetText(existing_settings.Key)
 
 	form := &widget.Form{
-		Items: nil,
 		OnSubmit: func() { // optional, handle form submission
 			var s settings
 			s.Freq, err = strconv.ParseFloat(entry_freq.Text, 64)
@@ -398,7 +397,7 @@ func main() {
 			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		} else {
-			placeholder.SetText("getting train times")
+			placeholder.SetText("refreshing train times")
 			home_tab.Content = placeholder
 		}
 	}
