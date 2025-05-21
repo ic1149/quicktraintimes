@@ -125,7 +125,7 @@ func crs_validator(s string) error {
 	return fmt.Errorf("station not found in list, ver %v", all_stations.Version)
 }
 
-func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI) *widget.Card {
+func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI) *fyne.Container {
 	mywin_obj := *mywin_addr
 	err := json.Unmarshal(resourceStationsJson.StaticContent, &all_stations)
 	if err != nil {
@@ -237,8 +237,6 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	form.SubmitText = "Save"
 	form.CancelText = "Cancel"
 
-	card := widget.NewCard(fmt.Sprint(id), "", nil)
-
 	del_button := widget.NewButtonWithIcon("", theme.DeleteIcon(),
 		func() {
 			if entry_del.Text == "DELETE" {
@@ -259,11 +257,10 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 	form_border := container.NewBorder(del_msg, nil, nil, del_button, form)
 
-	card.SetContent(form_border)
-	return card
+	return form_border
 }
 
-var qtt_card_list []widget.Card
+var qtt_cont_list []fyne.Container
 
 func qtt_init(mywin_addr *fyne.Window, rootURI fyne.URI) *container.Scroll {
 	mywin := *mywin_addr
@@ -275,13 +272,13 @@ func qtt_init(mywin_addr *fyne.Window, rootURI fyne.URI) *container.Scroll {
 	vb := container.NewVBox()
 
 	for _, qt := range qts.Quick_times {
-		qtt_card_list = append(qtt_card_list, *qtt_form(false, qt, mywin_addr, rootURI))
-		vb.Add(&qtt_card_list[len(qtt_card_list)-1])
+		qtt_cont_list = append(qtt_cont_list, *qtt_form(false, qt, mywin_addr, rootURI))
+		vb.Add(&qtt_cont_list[len(qtt_cont_list)-1])
 	}
 
 	new_button := widget.NewButton("new entry", func() {
-		qtt_card_list = append(qtt_card_list, *qtt_form(true, *new(quick_time), mywin_addr, rootURI))
-		vb.Add(&qtt_card_list[len(qtt_card_list)-1])
+		qtt_cont_list = append(qtt_cont_list, *qtt_form(true, *new(quick_time), mywin_addr, rootURI))
+		vb.Add(&qtt_cont_list[len(qtt_cont_list)-1])
 	})
 
 	main_border := container.NewBorder(nil, new_button, nil, nil, vb)
