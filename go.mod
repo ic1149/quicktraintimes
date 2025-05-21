@@ -1,4 +1,4 @@
-module github.com/ic1149/go_ldbws
+module github.com/ic1149/quicktraintimes
 
 go 1.24.3
 
