@@ -136,9 +136,7 @@ func crs_validator(s string) error {
 			return errors.New("should be 3 uppercase English letters")
 		}
 	}
-	if s == "*" {
-		return nil
-	}
+
 	for _, stn := range all_stations.StationList {
 		if stn.Crs == s {
 			return nil // CRS code found in list, no err
@@ -170,7 +168,14 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 	entry_dest := widget.NewEntry()
 	entry_dest.SetPlaceHolder("CRS code")
-	entry_dest.Validator = crs_validator
+	entry_dest.Validator = func(s string) error {
+		if s == "*" {
+			return nil
+		} else {
+			err := crs_validator(s)
+			return err
+		}
+	}
 
 	checkDays := widget.NewCheckGroup(days, nil)
 	checkDays.Horizontal = true
@@ -238,6 +243,8 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 			}
 			checkDays.SetSelected(selected_days)
 		},
+		SubmitText: "Save",
+		CancelText: "Cancel",
 	}
 
 	form.Append("Start time", entry_start)
@@ -245,9 +252,6 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	form.Append("From station", entry_org)
 	form.Append("To station", entry_dest)
 	form.Append("Days", checkDays)
-
-	form.SubmitText = "Save"
-	form.CancelText = "Cancel"
 
 	del_button := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
 

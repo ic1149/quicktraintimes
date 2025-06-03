@@ -247,7 +247,10 @@ func refershTimes(mylabel_addr **widget.Label,
 	case 1:
 		var data [][]string
 		var datarow []string
-		for _, val := range updated_times_s[0] {
+		for i, val := range updated_times_s[0] {
+			if i >= desired_len {
+				break
+			}
 			datarow = nil
 			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
 			data = append(data, datarow)
@@ -263,7 +266,10 @@ func refershTimes(mylabel_addr **widget.Label,
 	case 2:
 		var data [][]string
 		var datarow []string
-		for _, val := range updated_times_s[0] {
+		for i, val := range updated_times_s[0] {
+			if i >= desired_len {
+				break
+			}
 			datarow = nil
 			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
 			data = append(data, datarow)
@@ -275,7 +281,10 @@ func refershTimes(mylabel_addr **widget.Label,
 
 		var data2 [][]string
 		var datarow2 []string
-		for _, val := range updated_times_s[1] {
+		for i, val := range updated_times_s[1] {
+			if i >= desired_len {
+				break
+			}
 			datarow2 = nil
 			datarow2 = append(datarow2, val.plat, val.toc, val.std, val.dest, val.etd)
 			data2 = append(data2, datarow2)
