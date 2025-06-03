@@ -37,6 +37,23 @@ type qtt struct {
 
 var qts qtt
 
+func (s *qtt) new_entry(new_qt quick_time) {
+	existing_ids := []int{}
+	for _, v := range s.Quick_times {
+		existing_ids = append(existing_ids, v.Id)
+	}
+	var new_id int
+
+	for {
+		new_id = rand.IntN(999) + 1
+		if !slices.Contains(existing_ids, new_id) {
+			break
+		}
+	}
+
+	s.Quick_times = append(s.Quick_times, new_qt)
+}
+
 func (qts qtt) find_by_id(target_id int) (quick_time, error) {
 	for _, val := range qts.Quick_times {
 		if val.Id == target_id {
@@ -56,20 +73,24 @@ func (qts qtt) check_exist(target_id int) bool {
 	}
 }
 
-func (qts *qtt) del_by_id(target_id int) {
-	to_del := []int{}
-	for i, v := range qts.Quick_times {
-		if v.Id == target_id || v.Id == 0 {
-			to_del = append(to_del, i)
-		} // id 0 is empty default qt
-		// sweep those as well
+func (s *qtt) replace_by_id(target_id int, new_qt quick_time) {
+	for i, v := range s.Quick_times {
+		if v.Id == target_id {
+			s.Quick_times[i] = new_qt
+			break
+		}
 	}
+}
 
-	for _, w := range to_del {
-		qts.Quick_times = slices.Delete(qts.Quick_times, w, w+1)
+func (s *qtt) del_by_id(target_id int) {
+	new_slice := []quick_time{}
+	for _, v := range s.Quick_times {
+		if v.Id != target_id {
+			new_slice = append(new_slice, v)
+		}
 	}
-
-	qts.del_ids = append(qts.del_ids, target_id)
+	s.Quick_times = new_slice
+	s.del_ids = append(qts.del_ids, target_id)
 }
 
 var dayMapping = map[string]int{
@@ -197,8 +218,12 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 			new_qt.Org = entry_org.Text
 			new_qt.Dest = entry_dest.Text
 			new_qt.Days = GetChosenDaysArray(checkDays.Selected)
-			qts.del_by_id(id)                                 // delete old entry
-			qts.Quick_times = append(qts.Quick_times, new_qt) // put new one in
+			if qts.check_exist(id) {
+				qts.replace_by_id(id, new_qt)
+			} else {
+				qts.new_entry(new_qt)
+			}
+			fmt.Println(qts)
 			err := save_json(qts, "qtt.json", rootURI)
 			if err != nil {
 				err_msg := dialog.NewError(err, mywin_obj)
@@ -264,7 +289,8 @@ var qtt_cont_list []fyne.Container
 
 func qtt_init(mywin_addr *fyne.Window, rootURI fyne.URI) *container.Scroll {
 	mywin := *mywin_addr
-	_, qts, err := load_json("qtt.json", rootURI)
+	var err error
+	_, qts, err = load_json("qtt.json", rootURI)
 	if err != nil {
 		dialog.NewError(err, mywin)
 	}
