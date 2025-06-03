@@ -173,16 +173,6 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	checkDays := widget.NewCheckGroup(days, nil)
 	checkDays.Horizontal = true
 
-	entry_del := widget.NewEntry()
-	entry_del.SetPlaceHolder("type DELETE here to allow deletion of this entry")
-	entry_del.Validator = func(s string) error {
-		if s == "DELETE" {
-			return errors.New("CLICK THE DELETE BUTTON ON THE RIGHT TO DELETE")
-		} else {
-			return nil
-		}
-	}
-
 	var id int
 	if new {
 		id = rand.IntN(999) + 1 // 1-999
@@ -210,7 +200,6 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 	form := &widget.Form{
 		OnSubmit: func() {
-			entry_del.SetText("")
 			var new_qt quick_time
 			new_qt.Id = id
 			new_qt.Start = entry_start.Text
@@ -223,7 +212,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 			} else {
 				qts.new_entry(new_qt)
 			}
-			fmt.Println(qts)
+
 			err := save_json(qts, "qtt.json", rootURI)
 			if err != nil {
 				err_msg := dialog.NewError(err, mywin_obj)
@@ -241,7 +230,6 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 			entry_end.SetText(qt.End)
 			entry_org.SetText(qt.Org)
 			entry_dest.SetText(qt.Dest)
-			entry_del.SetText("")
 			var selected_days []string
 			for _, v := range qt.Days {
 				selected_days = append(selected_days, days[v])
@@ -255,32 +243,31 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	form.Append("From station", entry_org)
 	form.Append("To station", entry_dest)
 	form.Append("Days", checkDays)
-	form.Append("Delete", entry_del)
-
-	del_msg := widget.NewLabel("")
 
 	form.SubmitText = "Save"
 	form.CancelText = "Cancel"
 
-	del_button := widget.NewButtonWithIcon("", theme.DeleteIcon(),
-		func() {
-			if entry_del.Text == "DELETE" {
-				qts.del_by_id(id)
-				err := save_json(qts, "qtt.json", rootURI)
-				if err != nil {
-					err_msg := dialog.NewError(err, mywin_obj)
-					err_msg.Show()
-				} else {
-					del_msg.SetText("entry deleted")
-					form.Hide()
-					success_msg := dialog.NewInformation("Info", "entry deleted successfully", mywin_obj)
-					success_msg.Show()
-				}
+	del_button := widget.NewButtonWithIcon("", theme.DeleteIcon(), nil)
+
+	del_confirm := dialog.NewConfirm("Deletion", "Are you sure you want to delete this entry?", func(b bool) {
+		if b {
+			qts.del_by_id(id)
+			err := save_json(qts, "qtt.json", rootURI)
+			if err != nil {
+				err_msg := dialog.NewError(err, mywin_obj)
+				err_msg.Show()
+			} else {
+				form.Hide()
+				success_msg := dialog.NewInformation("Info", "entry deleted successfully", mywin_obj)
+				success_msg.Show()
+				del_button.Hide()
 			}
+		}
+	}, mywin_obj)
 
-		})
+	del_button.OnTapped = func() { del_confirm.Show() }
 
-	form_border := container.NewBorder(del_msg, nil, nil, del_button, form)
+	form_border := container.NewBorder(nil, nil, nil, del_button, form)
 
 	return form_border
 }
