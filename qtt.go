@@ -167,7 +167,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	entry_org.Validator = crs_validator
 
 	entry_dest := widget.NewEntry()
-	entry_dest.SetPlaceHolder("CRS code")
+	entry_dest.SetPlaceHolder("CRS code, or an asterisk (*) for any destination")
 	entry_dest.Validator = func(s string) error {
 		if s == "*" {
 			return nil
