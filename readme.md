@@ -1,6 +1,6 @@
 # Quick Train Times
 
-## about
+## About
 
 Quick train times (QTT) is an application that gets live train departure data in the UK (National Rail) instantly.
 Traditionally, it is required for user to choose the origin and destination stations every time.
@@ -8,22 +8,22 @@ Everyday going to and from school or work, we have to select the stations manual
 With QTT, entries with time frames can be set to automatically show your routine train journeys.
 All of the critical information is presented in one view.
 
-## how to install
+## How to install
 
-### linux
+### Linux
 Run the install script `install.sh` if you have a desktop environment, this installs the program for all users, with a desktop file.
 
 Alternatively, downoad quicktraintimes.tar.xz in release. Then, extract the file. After that, cd into it and run `sudo make install`. The command `quicktraintimes` runs the app.
 
-### android
+### Android
 - download the apk file in release
 - install the apk file (you may have to enable permission to install apk)
 
-### windows
+### Windows
 - download the exe file in release
 - run the file
 
-## how to use the app
+## How to use the app
 
 ### 1. Key
 
@@ -40,9 +40,9 @@ A key can be obtained by subscribing [Live Deaprture Board on Rail Data Marketpl
 
 Go to the Config QTTs page. Create new entries here. Fill in the required parameters. Remember to click save for each entry. Go back to homepage and your train times will appear if within the desired time slots. Please note if more than two entries are within current time, only the first two will show. 
 
-### example QTT entries
+### Example QTT entries
 
-#### example 1 - a commuter living in London, working in Bristol
+#### Example 1 - a commuter living in London, working in Bristol
 
 I am going to work on weekdays. Usually, I wake up 06:30 and take a train around 08:00 at London Paddington to Bristol Temple Meads.
 ```
