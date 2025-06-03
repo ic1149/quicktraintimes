@@ -114,10 +114,6 @@ func (tc *TableConfig) BuildTable() *widget.Table {
 	table.UpdateHeader = func(id widget.TableCellID, template fyne.CanvasObject) {
 		label := template.(*widget.Label)
 
-		// id.Row == -1 && id.Col == -1: Top-left corner header cell
-		// id.Row == -1 && id.Col >= 0: Column header cell
-		// id.Col == -1 && id.Row >= 0: Row header cell
-
 		if id.Row == -1 && id.Col == -1 { // Corner cell
 			label.SetText(tc.CornerHeaderText)
 		} else if id.Row == -1 { // Column headers
@@ -164,6 +160,7 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 	date_only = date_only[0:10]
 	var correct_count int
 	for _, qt := range qts.Quick_times {
+		// if today is chosen
 		if slices.Contains(qt.Days, today) {
 			start, err := time.Parse(time.RFC822, date_only+qt.Start+current_tz)
 			if err != nil {
@@ -173,18 +170,18 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 			if err != nil {
 				return nil, nil, 0, err
 			}
-
+			// if within time range
 			if now.After(start) && now.Before(end) {
 				correct_time = append(correct_time, qt)
 				correct_count++
 				if correct_count >= 2 {
-					break
+					break // more than two within time
 				}
 			}
 		}
 	}
 	if len(correct_time) == 0 {
-		return nil, nil, 0, nil
+		return nil, nil, 0, nil // not in any time ranges
 	}
 	res := make([][]train_service, 0, len(correct_time))
 	f_t_list := make([]string, 0, len(correct_time))
@@ -211,7 +208,7 @@ func refershTimes(mylabel_addr **widget.Label,
 	rootURI fyne.URI) {
 	apptabs_obj := *apptabs_addr
 	if apptabs_obj.SelectedIndex() != 0 {
-		return
+		return // not on this page
 	}
 
 	// fmt.Println("refreshing train times")
@@ -288,7 +285,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		})
 	default:
 		dialog.ShowConfirm("something went wrong", fmt.Sprintf("incorrect number of correct times (%v)", correct_count), nil, mywin_obj)
-	}
+	} // function shouldn't return more than two but just in case
 
 }
 
@@ -309,6 +306,7 @@ func main() {
 
 	rootURI := myapp.Storage().RootURI()
 
+	// -----settings page------
 	entry_freq := widget.NewEntry()
 	entry_freq.SetPlaceHolder("in seconds")
 
@@ -360,7 +358,7 @@ func main() {
 		},
 	}
 
-	// we can also append items
+	// append items to form
 	form.Append("Refresh Frequency (secs)", entry_freq)
 	form.Append("Departure API Key", entry_key)
 	form.SubmitText = "Save"
@@ -374,6 +372,7 @@ func main() {
 	mywin.SetContent(mytabs)
 	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
 
+	// when going to main tab refresh train time
 	mytabs.OnSelected = func(selectedTab *container.TabItem) {
 		if mytabs.SelectedIndex() == 0 {
 			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
@@ -385,7 +384,7 @@ func main() {
 	}
 
 	go func() {
-		// every minute
+		// main loop
 		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
 			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
 			fyne.Do(func() { mywin.SetContent(mytabs) })

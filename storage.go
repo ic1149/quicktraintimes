@@ -65,8 +65,6 @@ func load_json(fname string, rootURI fyne.URI) (settings, qtt, error) {
 		}
 		return mysettings, myqtt, nil
 	} else {
-
-		// Example of reading the existing file:
 		readCloser, err := storage.Reader(myURI)
 		if err != nil {
 			return mysettings, myqtt, err
