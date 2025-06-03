@@ -348,13 +348,13 @@ func main() {
 	}
 
 	entry_len := widget.NewEntry()
-	entry_len.SetPlaceHolder("positive integer")
+	entry_len.SetPlaceHolder("positive integer [1,150]")
 	entry_len.Validator = func(s string) error {
 		myint, err := strconv.Atoi(s)
 		if err != nil {
 			return errors.New("not an integer")
-		} else if myint <= 0 {
-			return errors.New("not positive")
+		} else if myint <= 0 || myint > 150 {
+			return errors.New("not within [1,150]")
 		} else {
 			return nil
 		}
