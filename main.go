@@ -135,8 +135,9 @@ func (tc *TableConfig) BuildTable() *widget.Table {
 }
 
 type settings struct {
-	Freq float64 `json:"freq"`
-	Key  string  `json:"key"`
+	Freq        float64 `json:"freq"`
+	Key         string  `json:"key"`
+	Desired_len int     `json:"desired_len"`
 }
 
 // use configured data to get data of train services
@@ -210,6 +211,7 @@ func refershTimes(mylabel_addr **widget.Label,
 	hometab_addr **container.TabItem,
 	apptabs_addr **container.AppTabs,
 	key string,
+	desired_len int,
 	rootURI fyne.URI) {
 	apptabs_obj := *apptabs_addr
 	if apptabs_obj.SelectedIndex() != 0 {
@@ -222,7 +224,6 @@ func refershTimes(mylabel_addr **widget.Label,
 		mylabel_obj.SetText("refreshing train times")
 	})
 
-	const desired_len = 5
 	mywin_obj := *mywin_addr
 
 	updated_times_s, f_t_list, correct_count, err := trains(key, rootURI)
@@ -346,6 +347,20 @@ func main() {
 		}
 	}
 
+	entry_len := widget.NewEntry()
+	entry_len.SetPlaceHolder("positive integer")
+	entry_len.Validator = func(s string) error {
+		myint, err := strconv.Atoi(s)
+		if err != nil {
+			return errors.New("not an integer")
+		} else if myint <= 0 {
+			return errors.New("not positive")
+		} else {
+			return nil
+		}
+
+	}
+
 	existing_settings, _, err := load_json("settings.json", rootURI)
 	if err != nil {
 		dialog.NewError(err, mywin)
@@ -353,12 +368,14 @@ func main() {
 
 	entry_freq.SetText(fmt.Sprint(existing_settings.Freq))
 	entry_key.SetText(existing_settings.Key)
+	entry_len.SetText(fmt.Sprint(existing_settings.Desired_len))
 
 	form := &widget.Form{
 		OnSubmit: func() { // optional, handle form submission
 			var s settings
 			s.Freq, err = strconv.ParseFloat(entry_freq.Text, 64)
 			s.Key = entry_key.Text
+			s.Desired_len, _ = strconv.Atoi(entry_len.Text)
 			err := save_json(s, "settings.json", rootURI)
 			if err != nil {
 				dialog.ShowError(err, mywin)
@@ -369,12 +386,14 @@ func main() {
 		OnCancel: func() {
 			entry_freq.SetText(fmt.Sprint(existing_settings.Freq))
 			entry_key.SetText(existing_settings.Key)
+			entry_len.SetText(fmt.Sprint(existing_settings.Desired_len))
 		},
 	}
 
 	// append items to form
 	form.Append("Refresh Frequency (secs)", entry_freq)
 	form.Append("Departure API Key", entry_key)
+	form.Append("Max num of train times", entry_len)
 	form.SubmitText = "Save"
 
 	con := container.NewBorder(nil, widget.NewLabel("Changes will be applied next time starting the program."), nil, nil, form)
@@ -384,12 +403,12 @@ func main() {
 
 	mytabs := container.NewAppTabs(home_tab, settings_tab, config_tab)
 	mywin.SetContent(mytabs)
-	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
+	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
 
 	// when going to main tab refresh train time
 	mytabs.OnSelected = func(selectedTab *container.TabItem) {
 		if mytabs.SelectedIndex() == 0 {
-			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
+			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		} else {
 			placeholder.SetText("refreshing train times")
@@ -400,7 +419,7 @@ func main() {
 	go func() {
 		// main loop
 		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
-			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, rootURI)
+			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		}
 	}()

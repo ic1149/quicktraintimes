@@ -35,7 +35,7 @@ func save_json(mystruct any, fname string, rootURI fyne.URI) error {
 
 func load_json(fname string, rootURI fyne.URI) (settings, qtt, error) {
 	default_strs := map[string]string{
-		"settings.json": `{"freq":60, "key":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}`,
+		"settings.json": `{"freq":60,"key":"ZF2QTLjOalPE2KrbeoUsOarJ7ic4XQHJPnR9eiSHR9I4j0A0","desired_len":5}`,
 		"qtt.json":      `{"quick_times":[{}]}`,
 	}
 	mysettings := settings{Freq: 60, Key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
