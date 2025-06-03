@@ -8,13 +8,12 @@ Everyday going to and from school or work, we have to select the stations manual
 With QTT, entries with time frames can be set to automatically show your routine train journeys.
 All of the critical information is presented in one view.
 
-## How to install
+## How to install or upgrade
 
 ### Linux
 Run the install script `install.sh` if you have a desktop environment, this installs the program for all users, with a desktop file.
 
-Alternatively, downoad quicktraintimes.tar.xz in release. Then, extract the file.
-After that, cd into it and run `sudo make install`.
+Alternatively, you can install it manually.  If you are upgrading, delete the old installer and binary. Downoad `quicktraintimes.tar.xz` in release. Then, extract the file. After that, cd into it and run `sudo make install`.
 
 The command `quicktraintimes` runs the app. You may want to set `alias qtt="quicktraintimes"` for convenience.
 
