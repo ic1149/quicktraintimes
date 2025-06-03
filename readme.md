@@ -13,7 +13,10 @@ All of the critical information is presented in one view.
 ### Linux
 Run the install script `install.sh` if you have a desktop environment, this installs the program for all users, with a desktop file.
 
-Alternatively, downoad quicktraintimes.tar.xz in release. Then, extract the file. After that, cd into it and run `sudo make install`. The command `quicktraintimes` runs the app.
+Alternatively, downoad quicktraintimes.tar.xz in release. Then, extract the file.
+After that, cd into it and run `sudo make install`.
+
+The command `quicktraintimes` runs the app. You may want to set `alias qtt="quicktraintimes"` for convenience.
 
 ### Android
 - download the apk file in release
