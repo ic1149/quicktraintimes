@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"slices"
 	"strconv"
 	"time"
@@ -63,7 +62,7 @@ func NewTableConfig(data [][]string, colHeaders []string, rowHeaders []string) *
 func (tc *TableConfig) BuildTable() *widget.Table {
 	// Basic validation for data
 	if tc.Data == nil {
-		log.Println("Warning: TableConfig.Data is nil. Creating an empty table.")
+		// log.Println("Warning: TableConfig.Data is nil. Creating an empty table.")
 		tc.Data = [][]string{} // Ensure Data is not nil to prevent panics later
 	}
 
