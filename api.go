@@ -31,6 +31,9 @@ func format_params(param_list []string, val_list []string) (string, error) {
 }
 
 func request(url, key string) []train_service {
+	if key == "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {
+		return nil // default key, don't even bother sending request
+	}
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
