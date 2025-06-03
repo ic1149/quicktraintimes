@@ -186,13 +186,18 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 	res := make([][]train_service, 0, len(correct_time))
 	f_t_list := make([]string, 0, len(correct_time))
 	for _, v := range correct_time {
-		params, err := format_params([]string{"filterCrs", "filterType"},
-			[]string{v.Dest, "to"})
+		var url string = base_url + v.Org
+		if v.Dest != "*" {
+			params, err := format_params([]string{"filterCrs", "filterType"},
+				[]string{v.Dest, "to"})
 
-		if err != nil {
-			return nil, nil, 0, err
+			if err != nil {
+				return nil, nil, 0, err
+			} else {
+				url = url + params
+			}
 		}
-		var url string = base_url + v.Org + params
+
 		res = append(res, request(url, key))
 		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
 	}

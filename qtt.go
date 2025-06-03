@@ -136,7 +136,9 @@ func crs_validator(s string) error {
 			return errors.New("should be 3 uppercase English letters")
 		}
 	}
-
+	if s == "*" {
+		return nil
+	}
 	for _, stn := range all_stations.StationList {
 		if stn.Crs == s {
 			return nil // CRS code found in list, no err
