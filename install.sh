@@ -10,9 +10,9 @@ wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes.
 tar -xf quicktraintimes.tar.xz
 sudo rm $(which quicktraintimes) # remove existing installation
 sudo make install #install quicktraintimes
-wget github.com/ic1149/quicktraintimes/releases/latest/download/qtt.desktop
+wget github.com/ic1149/quicktraintimes/blob/main/qtt.desktop
 mv qtt.desktop /usr/share/applications/qtt.desktop #desktop file
-wget github.com/ic1149/quicktraintimes/releases/latest/download/qtt_icon.png
+wget github.com/ic1149/quicktraintimes/blob/main/qtt_icon.png
 mv qtt_icon.png /usr/share/icons/qtt_icon.png #icon
 cd ~
 rm -rf qtt #remove installtion files
