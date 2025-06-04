@@ -261,7 +261,8 @@ func refershTimes(mylabel_addr **widget.Label,
 		config.CellTemplateText = "?"
 		table := config.BuildTable()
 		fyne.Do(func() {
-			hometab_obj.Content = container.NewScroll(widget.NewCard(f_t_list[0], "", table))
+			mylabel_obj.SetText("")
+			hometab_obj.Content = container.NewBorder(mylabel_obj, nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
 		})
 
 	case 2:
@@ -416,11 +417,12 @@ func main() {
 	// when going to main tab refresh train time
 	mytabs.OnSelected = func(selectedTab *container.TabItem) {
 		if mytabs.SelectedIndex() == 0 {
+			fyne.Do(func() { placeholder.SetText("refreshing train times") })
 			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		} else {
 			placeholder.SetText("refreshing train times")
-			home_tab.Content = placeholder
+			// home_tab.Content = placeholder
 		}
 	}
 
