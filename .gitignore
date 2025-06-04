@@ -3,3 +3,4 @@ settings.json
 *.tar.xz
 *.apk
 *.exe
+fyne-cross/
