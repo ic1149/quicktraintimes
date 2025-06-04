@@ -296,7 +296,15 @@ func refershTimes(mylabel_addr **widget.Label,
 		table2 := config2.BuildTable()
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
-			hometab_obj.Content = container.NewBorder(*mylabel_addr, nil, nil, nil, container.NewVSplit(container.NewScroll(widget.NewCard(f_t_list[0], "", table)), container.NewScroll(widget.NewCard(f_t_list[1], "", table2))))
+
+			hometab_obj.Content = container.NewBorder(*mylabel_addr, nil, nil, nil,
+				container.New(NewHalfHeightLayout(),
+					container.NewScroll(
+						widget.NewCard(f_t_list[0], "", table)),
+					container.NewScroll(
+						widget.NewCard(f_t_list[1], "", table2)),
+				))
+
 		})
 	default:
 		dialog.ShowConfirm("something went wrong", fmt.Sprintf("incorrect number of correct times (%v)", correct_count), nil, mywin_obj)
