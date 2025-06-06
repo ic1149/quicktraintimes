@@ -7,7 +7,7 @@ fi
 mkdir qtt #create temp dir
 cd qtt
 
-wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes.tar.xz
+wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes_1.0.0.tar.xz
 tar -xf quicktraintimes.tar.xz
 
 if which quicktraintimes; then
