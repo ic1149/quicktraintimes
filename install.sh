@@ -10,7 +10,9 @@ cd qtt
 wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes.tar.xz
 tar -xf quicktraintimes.tar.xz
 
-sudo rm $(which quicktraintimes) # remove existing installation
+if which quicktraintimes; then
+  sudo rm $(which quicktraintimes) # remove existing installation
+fi
 
 sudo make install #install quicktraintimes
 
