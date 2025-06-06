@@ -8,7 +8,7 @@ mkdir qtt #create temp dir
 cd qtt
 
 wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes_1.0.0.tar.xz
-tar -xf quicktraintimes.tar.xz
+tar -xf quicktraintimes_1.0.0.tar.xz
 
 if which quicktraintimes; then
   sudo rm $(which quicktraintimes) # remove existing installation
@@ -23,11 +23,11 @@ if [ -f /usr/share/applications/qtt.desktop ]; then
 fi
 sudo mv qtt.desktop /usr/share/applications/qtt.desktop #desktop file
 
-wget github.com/ic1149/quicktraintimes/blob/main/qtt_icon.png
+wget github.com/ic1149/quicktraintimes/blob/main/qtt_icon_v1.png
 if [ -f /usr/share/icons/qtt_icon.png ]; then
-  sudo rm /usr/share/icons/qtt_icon.png
+  sudo rm /usr/share/icons/qtt_icon_v1.png
 fi
-sudo mv qtt_icon.png /usr/share/icons/qtt_icon.png #icon
+sudo mv qtt_icon_v1.png /usr/share/icons/qtt_icon_v1.png #icon
 
 cd ~
 rm -rf qtt #remove installtion files
