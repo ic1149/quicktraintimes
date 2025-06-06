@@ -1,5 +1,4 @@
 .env
-settings.json
 *.tar.xz
 *.apk
 *.exe

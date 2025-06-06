@@ -28,5 +28,6 @@ if [ -f /usr/share/icons/qtt_icon.png ]; then
   sudo rm /usr/share/icons/qtt_icon.png
 fi
 sudo mv qtt_icon.png /usr/share/icons/qtt_icon.png #icon
+
 cd ~
 rm -rf qtt #remove installtion files
