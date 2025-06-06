@@ -1,0 +1,13 @@
+Website = "https://github.com/ic1149/quicktraintimes"
+
+[Details]
+Icon = "qtt_icon_v1.png"
+Name = "Quick Train Times"
+ID = "io.github.ic1149.qtt"
+Version = "1.0.0"
+Build = 1
+
+
+[LinuxAndBSD]
+  GenericName = "Quick Train Times"
+  Comment = "Get UK National Rail train times quickly."
