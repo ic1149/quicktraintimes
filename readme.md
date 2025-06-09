@@ -11,7 +11,7 @@ All of the critical information is presented in one view.
 ## How to install or upgrade
 
 ### Linux
-Run the install script `install.sh` if you have a desktop environment, this installs the program for all users, with a desktop file.
+Download and run the install script `install.sh` if you have a desktop environment, this installs the program for all users, with a desktop file. The alias qtt is also added to `.bash_aliases`.
 
 Alternatively, you can install it manually.  If you are upgrading, delete the old installer and binary. Downoad `quicktraintimes.tar.xz` in release. Then, extract the file. After that, cd into it and run `sudo make install`.
 

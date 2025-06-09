@@ -31,3 +31,5 @@ sudo mv qtt_icon_v1.png /usr/share/icons/qtt_icon_v1.png #icon
 
 cd ~
 rm -rf qtt #remove installtion files
+
+echo 'alias qtt="quicktraintimes"' >> .bash_aliases
