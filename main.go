@@ -214,6 +214,25 @@ func apply_col_widths(table *widget.Table) {
 	table.SetColumnWidth(4, 80)  // etd
 }
 
+func tt_table(ut []train_service, dl int, ch, rh []string) *widget.Table {
+	var data [][]string
+	var datarow []string
+	for i, val := range ut {
+		if i >= dl {
+			break
+		}
+		datarow = nil
+		datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
+		data = append(data, datarow)
+	}
+
+	config := NewTableConfig(data, ch, rh)
+	config.CellTemplateText = "?"
+	table := config.BuildTable()
+	apply_col_widths(table)
+	return table
+}
+
 // update main label (get data + gui)
 func refershTimes(mylabel_addr **widget.Label,
 	mywin_addr *fyne.Window,
@@ -255,58 +274,15 @@ func refershTimes(mylabel_addr **widget.Label,
 			hometab_obj.Content = mylabel_obj
 		})
 	case 1:
-		var data [][]string
-		var datarow []string
-		for i, val := range updated_times_s[0] {
-			if i >= desired_len {
-				break
-			}
-			datarow = nil
-			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
-			data = append(data, datarow)
-		}
-
-		config := NewTableConfig(data, colHeaders, rowHeaders)
-		config.CellTemplateText = "?"
-		table := config.BuildTable()
-		apply_col_widths(table)
+		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 			hometab_obj.Content = container.NewBorder(mylabel_obj, nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
 		})
 
 	case 2:
-		var data [][]string
-		var datarow []string
-		for i, val := range updated_times_s[0] {
-			if i >= desired_len {
-				break
-			}
-			datarow = nil
-			datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
-			data = append(data, datarow)
-		}
-
-		config := NewTableConfig(data, colHeaders, rowHeaders)
-		config.CellTemplateText = "N/A"
-		table := config.BuildTable()
-		apply_col_widths(table)
-
-		var data2 [][]string
-		var datarow2 []string
-		for i, val := range updated_times_s[1] {
-			if i >= desired_len {
-				break
-			}
-			datarow2 = nil
-			datarow2 = append(datarow2, val.plat, val.toc, val.std, val.dest, val.etd)
-			data2 = append(data2, datarow2)
-		}
-
-		config2 := NewTableConfig(data2, colHeaders, rowHeaders)
-		config2.CellTemplateText = "N/A"
-		table2 := config2.BuildTable()
-		apply_col_widths(table2)
+		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
+		table2 := tt_table(updated_times_s[1], desired_len, colHeaders, rowHeaders)
 
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
