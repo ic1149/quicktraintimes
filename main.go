@@ -312,6 +312,7 @@ func main() {
 
 	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
+	mywin.Resize(fyne.NewSize(640, 640))
 
 	placeholder := widget.NewLabel("train times go here")
 	home_border := container.NewBorder(placeholder, nil, nil, nil, nil)
@@ -423,7 +424,6 @@ func main() {
 		}
 	}()
 
-	mywin.Resize(fyne.NewSize(640, 640))
 	mywin.Show()
 	myapp.Run()
 

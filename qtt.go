@@ -178,7 +178,11 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	}
 
 	checkDays := widget.NewCheckGroup(days, nil)
-	checkDays.Horizontal = true
+	if mywin_obj.Canvas().Size().Width < 640 {
+		checkDays.Horizontal = false // use vertical for mobile
+	} else {
+		checkDays.Horizontal = true
+	}
 
 	var id int
 	if new {
@@ -273,7 +277,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 	del_button.OnTapped = func() { del_confirm.Show() }
 
-	form_border := container.NewBorder(nil, nil, nil, del_button, form)
+	form_border := container.NewBorder(nil, widget.NewLabel(" "), nil, del_button, form)
 
 	return form_border
 }
