@@ -205,6 +205,15 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 	return res, f_t_list, correct_count, nil
 }
 
+func apply_col_widths(table *widget.Table) {
+	table.SetColumnWidth(-1, 30) // number header
+	table.SetColumnWidth(0, 40)  // plat
+	table.SetColumnWidth(1, 40)  // toc
+	table.SetColumnWidth(2, 60)  // std
+	table.SetColumnWidth(3, 50)  // dest
+	table.SetColumnWidth(4, 80)  // etd
+}
+
 // update main label (get data + gui)
 func refershTimes(mylabel_addr **widget.Label,
 	mywin_addr *fyne.Window,
@@ -260,6 +269,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		config := NewTableConfig(data, colHeaders, rowHeaders)
 		config.CellTemplateText = "?"
 		table := config.BuildTable()
+		apply_col_widths(table)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 			hometab_obj.Content = container.NewBorder(mylabel_obj, nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
@@ -280,6 +290,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		config := NewTableConfig(data, colHeaders, rowHeaders)
 		config.CellTemplateText = "N/A"
 		table := config.BuildTable()
+		apply_col_widths(table)
 
 		var data2 [][]string
 		var datarow2 []string
@@ -295,6 +306,8 @@ func refershTimes(mylabel_addr **widget.Label,
 		config2 := NewTableConfig(data2, colHeaders, rowHeaders)
 		config2.CellTemplateText = "N/A"
 		table2 := config2.BuildTable()
+		apply_col_widths(table2)
+
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 
