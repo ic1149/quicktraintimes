@@ -27,7 +27,7 @@ The command `quicktraintimes` runs the app. You may want to set `alias qtt="quic
 
 ### Web Demo
 
-[open here](https://ic1149.github.io/qtt-demo/index.html)
+<a href="https://github.com/ic1149/quicktraintimes" target="_blank">open web demo here</a>
 
 **Please note the web demo DOES NOT function!**
 
