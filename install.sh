@@ -23,7 +23,7 @@ if [ -f /usr/share/applications/qtt.desktop ]; then
 fi
 sudo mv qtt.desktop /usr/share/applications/qtt.desktop #desktop file
 
-wget github.com/ic1149/quicktraintimes/blob/main/qtt_icon_v1.png
+wget https://raw.githubusercontent.com/ic1149/quicktraintimes/refs/heads/main/qtt_icon_v1.png
 if [ -f /usr/share/icons/qtt_icon.png ]; then
   sudo rm /usr/share/icons/qtt_icon_v1.png
 fi
