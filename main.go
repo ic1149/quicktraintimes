@@ -306,6 +306,8 @@ func tidyUp() {
 	// fmt.Println("exiting app, thank you for using Quick Train Times")
 }
 
+var mobile bool = false
+
 func main() {
 	// run when exiting
 	defer tidyUp()
@@ -313,6 +315,9 @@ func main() {
 	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
 	mywin.Resize(fyne.NewSize(640, 640))
+	if mywin.Canvas().Size().Width < 640 {
+		mobile = true
+	}
 
 	placeholder := widget.NewLabel("train times go here")
 	home_border := container.NewBorder(placeholder, nil, nil, nil, nil)

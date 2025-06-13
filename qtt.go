@@ -178,7 +178,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	}
 
 	checkDays := widget.NewCheckGroup(days, nil)
-	if mywin_obj.Canvas().Size().Width < 640 {
+	if mobile {
 		checkDays.Horizontal = false // use vertical for mobile
 	} else {
 		checkDays.Horizontal = true
