@@ -23,21 +23,23 @@ func format_params(param_list []string, val_list []string) (string, error) {
 	} else {
 		var param_string string = "?" + param_list[0] + "=" + val_list[0]
 		for idx, val := range param_list[1:] {
-			param_string += "&" + val + "=" + val_list[idx]
+			param_string += "&" + val + "=" + val_list[idx+1]
 		}
+		fmt.Println(param_string)
 		return param_string, nil
 	}
 
 }
 
-func request(url, key string) []train_service {
+func request(url, key string) ([]train_service, error) {
 	if key == "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {
-		return nil // default key, don't even bother sending request
+		return nil, nil // default key, don't even bother sending request
 	}
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	req.Header.Set("x-apikey", key) // put api key in header
@@ -46,6 +48,7 @@ func request(url, key string) []train_service {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	body, err := io.ReadAll(res.Body)
@@ -58,6 +61,7 @@ func request(url, key string) []train_service {
 	}
 	if err != nil {
 		fmt.Println(err)
+		return nil, err
 	}
 
 	// fmt.Printf("%s", body)
@@ -65,7 +69,7 @@ func request(url, key string) []train_service {
 	res_struct := return_data{}
 
 	json.Unmarshal(fmt.Appendf(nil, "%s", body), &res_struct)
-
+	fmt.Println(len(res_struct.TrainServices))
 	services := make([]train_service, 0, len(res_struct.TrainServices))
 
 	for _, val := range res_struct.TrainServices {
@@ -91,5 +95,5 @@ func request(url, key string) []train_service {
 
 		services = append(services, new_service_struct)
 	}
-	return services
+	return services, nil
 }

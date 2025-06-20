@@ -141,7 +141,7 @@ type settings struct {
 }
 
 // use configured data to get data of train services
-func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, error) {
+func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []string, int, error) {
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
 
 	//crs = strings.ToUpper(strings.TrimSpace(crs))
@@ -160,6 +160,7 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 	date_only := now.Format(time.RFC822)
 	date_only = date_only[0:10]
 	var correct_count int
+
 	for _, qt := range qts.Quick_times {
 		// if today is chosen
 		if slices.Contains(qt.Days, today) {
@@ -188,18 +189,26 @@ func trains(key string, rootURI fyne.URI) ([][]train_service, []string, int, err
 	f_t_list := make([]string, 0, len(correct_time))
 	for _, v := range correct_time {
 		var url string = base_url + v.Org
+		var params string
+		var err error
 		if v.Dest != "*" {
-			params, err := format_params([]string{"filterCrs", "filterType"},
-				[]string{v.Dest, "to"})
-
-			if err != nil {
-				return nil, nil, 0, err
-			} else {
-				url = url + params
-			}
+			params, err = format_params([]string{"filterCrs", "filterType", "numRows"},
+				[]string{v.Dest, "to", fmt.Sprint(numRows)})
+		} else {
+			params, err = format_params([]string{"numRows"},
+				[]string{fmt.Sprint(numRows)})
 		}
 
-		res = append(res, request(url, key))
+		if err != nil {
+			return nil, nil, 0, err
+		} else {
+			url = url + params
+		}
+		this_res, err := request(url, key)
+		if err != nil {
+			return nil, nil, 0, err
+		}
+		res = append(res, this_res)
 		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
 	}
 	return res, f_t_list, correct_count, nil
@@ -240,7 +249,8 @@ func refershTimes(mylabel_addr **widget.Label,
 	apptabs_addr **container.AppTabs,
 	key string,
 	desired_len int,
-	rootURI fyne.URI) {
+	rootURI fyne.URI,
+	ref_button **widget.Button) {
 	apptabs_obj := *apptabs_addr
 	if apptabs_obj.SelectedIndex() != 0 {
 		return // not on this page
@@ -248,15 +258,16 @@ func refershTimes(mylabel_addr **widget.Label,
 
 	// fmt.Println("refreshing train times")
 	mylabel_obj := *mylabel_addr
+	ref_button_obj := *ref_button
 	fyne.Do(func() {
 		mylabel_obj.SetText("refreshing train times")
 	})
 
 	mywin_obj := *mywin_addr
 
-	updated_times_s, f_t_list, correct_count, err := trains(key, rootURI)
+	updated_times_s, f_t_list, correct_count, err := trains(key, rootURI, desired_len)
 	if err != nil {
-		dialog.NewError(err, mywin_obj)
+		dialog.ShowError(err, mywin_obj)
 	}
 
 	hometab_obj := *hometab_addr
@@ -271,13 +282,13 @@ func refershTimes(mylabel_addr **widget.Label,
 		mylabel_obj := *mylabel_addr
 		fyne.Do(func() {
 			mylabel_obj.SetText("not in specified time frames")
-			hometab_obj.Content = mylabel_obj
+			hometab_obj.Content = container.NewHBox(ref_button_obj, mylabel_obj)
 		})
 	case 1:
 		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
-			hometab_obj.Content = container.NewBorder(mylabel_obj, nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
+			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
 		})
 
 	case 2:
@@ -287,7 +298,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 
-			hometab_obj.Content = container.NewBorder(*mylabel_addr, nil, nil, nil,
+			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil,
 				container.New(NewHalfHeightLayout(),
 					container.NewScroll(
 						widget.NewCard(f_t_list[0], "", table)),
@@ -320,7 +331,10 @@ func main() {
 	}
 
 	placeholder := widget.NewLabel("train times go here")
-	home_border := container.NewBorder(placeholder, nil, nil, nil, nil)
+	refresh_button := widget.NewButton("refresh manually", func() {})
+	refresh_button.Show()
+	top_bar := container.NewHBox(refresh_button, placeholder)
+	home_border := container.NewBorder(top_bar, nil, nil, nil, nil)
 	home_tab := container.NewTabItem("Home", home_border)
 
 	rootURI := myapp.Storage().RootURI()
@@ -367,7 +381,7 @@ func main() {
 
 	existing_settings, _, err := load_json("settings.json", rootURI)
 	if err != nil {
-		dialog.NewError(err, mywin)
+		dialog.ShowError(err, mywin)
 	}
 
 	entry_freq.SetText(fmt.Sprint(existing_settings.Freq))
@@ -407,13 +421,19 @@ func main() {
 
 	mytabs := container.NewAppTabs(home_tab, settings_tab, config_tab)
 	mywin.SetContent(mytabs)
-	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
+	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
+
+	refresh_button.OnTapped = func() {
+		fyne.Do(func() { placeholder.SetText("refreshing train times") })
+		go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
+		fyne.Do(func() { mywin.SetContent(mytabs) })
+	}
 
 	// when going to main tab refresh train time
 	mytabs.OnSelected = func(selectedTab *container.TabItem) {
 		if mytabs.SelectedIndex() == 0 {
 			fyne.Do(func() { placeholder.SetText("refreshing train times") })
-			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
+			go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		} else {
 			placeholder.SetText("refreshing train times")
@@ -424,7 +444,7 @@ func main() {
 	go func() {
 		// main loop
 		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
-			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI)
+			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
 			fyne.Do(func() { mywin.SetContent(mytabs) })
 		}
 	}()
