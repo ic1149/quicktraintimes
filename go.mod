@@ -2,7 +2,10 @@ module github.com/ic1149/quicktraintimes
 
 go 1.24.3
 
-require fyne.io/fyne/v2 v2.6.1
+require (
+	fyne.io/fyne/v2 v2.6.1
+	github.com/pelletier/go-toml/v2 v2.2.4
+)
 
 require (
 	fyne.io/systray v1.11.0 // indirect

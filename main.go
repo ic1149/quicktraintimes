@@ -14,6 +14,9 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+//go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go FyneApp.toml
+//go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go -append stations.json
+
 // catch the api
 type return_data struct {
 	TrainServices []any `json:"trainServices"`
@@ -37,6 +40,14 @@ type quick_time struct {
 	Org   string `json:"org"`
 	Dest  string `json:"dest"`
 	Days  []int  `json:"days"`
+}
+
+type metadata struct {
+	Details met_details
+}
+
+type met_details struct {
+	Version string
 }
 
 type TableConfig struct {
@@ -338,6 +349,13 @@ func main() {
 	home_tab := container.NewTabItem("Home", home_border)
 
 	rootURI := myapp.Storage().RootURI()
+
+	ver, err := get_ver()
+	if err != nil {
+		dialog.ShowError(err, mywin)
+	} else {
+		mywin.SetTitle("Quick Train Times " + ver)
+	}
 
 	// -----settings page------
 	entry_freq := widget.NewEntry()

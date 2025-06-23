@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/storage"
+	"github.com/pelletier/go-toml/v2"
 )
 
 func save_json(mystruct any, fname string, rootURI fyne.URI) error {
@@ -86,4 +87,14 @@ func load_json(fname string, rootURI fyne.URI) (settings, qtt, error) {
 		}
 		return mysettings, myqtt, nil
 	}
+}
+
+func get_ver() (string, error) {
+	var met metadata
+	err := toml.Unmarshal(resourceFyneAppToml.StaticContent, &met)
+	if err != nil {
+		return "", err
+	}
+	return met.Details.Version, nil
+
 }

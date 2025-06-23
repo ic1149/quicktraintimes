@@ -5,6 +5,11 @@ package main
 
 import "fyne.io/fyne/v2"
 
+var resourceFyneAppToml = &fyne.StaticResource{
+	StaticName: "FyneApp.toml",
+	StaticContent: []byte(
+		"Website = \"https://github.com/ic1149/quicktraintimes\"\n\n[Details]\n  Icon = \"qtt_icon_v1.png\"\n  Name = \"quicktraintimes\"\n  ID = \"io.github.ic1149.qtt\"\n  Version = \"1.0.2\"\n  Build = 1\n\n[LinuxAndBSD]\n  GenericName = \"Quick Train Times\"\n  Comment = \"Get UK National Rail train times quickly.\"\n"),
+}
 var resourceStationsJson = &fyne.StaticResource{
 	StaticName: "stations.json",
 	StaticContent: []byte(

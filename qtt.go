@@ -16,8 +16,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-//go:generate fyne bundle -o bundled.go stations.json
-
 type station struct {
 	Crs  string `json:"crs"`
 	Name string `json:"Value"`
