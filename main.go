@@ -267,7 +267,6 @@ func refershTimes(mylabel_addr **widget.Label,
 		return // not on this page
 	}
 
-	// fmt.Println("refreshing train times")
 	mylabel_obj := *mylabel_addr
 	ref_button_obj := *ref_button
 	fyne.Do(func() {

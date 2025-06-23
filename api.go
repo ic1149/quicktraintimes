@@ -51,9 +51,9 @@ func request(url, key string) ([]train_service, error) {
 	body, err := io.ReadAll(res.Body)
 	if res.StatusCode != 200 {
 		if res.StatusCode > 299 {
-			fmt.Printf("Response failed with status code: %d\n", res.StatusCode)
+			return nil, fmt.Errorf("HTTP Error Code %d", res.StatusCode)
 		} else {
-			fmt.Printf("HTTP status code: %d", res.StatusCode)
+			return nil, fmt.Errorf("HTTP status code %d", res.StatusCode)
 		}
 	}
 	if err != nil {
