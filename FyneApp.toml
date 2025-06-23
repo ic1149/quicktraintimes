@@ -5,7 +5,7 @@ Website = "https://github.com/ic1149/quicktraintimes"
   Name = "quicktraintimes"
   ID = "io.github.ic1149.qtt"
   Version = "1.0.2"
-  Build = 1
+  Build = 2
 
 [LinuxAndBSD]
   GenericName = "Quick Train Times"
