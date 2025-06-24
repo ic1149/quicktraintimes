@@ -335,7 +335,7 @@ func main() {
 
 	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
-	mywin.Resize(fyne.NewSize(640, 640))
+	mywin.Resize(fyne.NewSize(639, 640))
 	if mywin.Canvas().Size().Width < 640 {
 		mobile = true
 	}
@@ -459,6 +459,7 @@ func main() {
 	}
 
 	go func() {
+
 		// main loop
 		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
 			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
