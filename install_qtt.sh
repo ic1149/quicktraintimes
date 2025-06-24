@@ -7,8 +7,8 @@ fi
 mkdir qtt #create temp dir
 cd qtt
 
-wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes_1.0.2.tar.xz
-tar -xf quicktraintimes_1.0.2.tar.xz
+wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes_1.0.3.tar.xz
+tar -xf quicktraintimes_1.0.3.tar.xz
 
 if which quicktraintimes; then
   sudo rm $(which quicktraintimes) # remove existing installation
