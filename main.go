@@ -327,8 +327,6 @@ func tidyUp() {
 	// fmt.Println("exiting app, thank you for using Quick Train Times")
 }
 
-var mobile bool = false
-
 func main() {
 	// run when exiting
 	defer tidyUp()
@@ -336,9 +334,6 @@ func main() {
 	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
 	mywin.Resize(fyne.NewSize(640, 640))
-	if mywin.Canvas().Size().Width < 640 {
-		mobile = true
-	}
 
 	placeholder := widget.NewLabel("train times go here")
 	refresh_button := widget.NewButton("refresh manually", func() {})
@@ -459,7 +454,6 @@ func main() {
 	}
 
 	go func() {
-
 		// main loop
 		for range time.Tick(time.Second * time.Duration(existing_settings.Freq)) {
 			refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)

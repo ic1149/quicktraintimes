@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"runtime"
 	"slices"
 	"sort"
 	"unicode"
@@ -176,7 +177,8 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	}
 
 	checkDays := widget.NewCheckGroup(days, nil)
-	if mobile {
+
+	if runtime.GOOS == "android" {
 		checkDays.Horizontal = false // use vertical for mobile
 	} else {
 		checkDays.Horizontal = true
