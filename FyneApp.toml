@@ -4,8 +4,8 @@ Website = "https://github.com/ic1149/quicktraintimes"
   Icon = "qtt_icon_v1.png"
   Name = "quicktraintimes"
   ID = "io.github.ic1149.qtt"
-  Version = "1.0.2"
-  Build = 2
+  Version = "1.0.3"
+  Build = 3
 
 [LinuxAndBSD]
   GenericName = "Quick Train Times"
