@@ -292,7 +292,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		mylabel_obj := *mylabel_addr
 		fyne.Do(func() {
 			mylabel_obj.SetText("not in specified time frames")
-			hometab_obj.Content = container.NewHBox(ref_button_obj, mylabel_obj)
+			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, nil)
 		})
 	case 1:
 		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
@@ -335,7 +335,7 @@ func main() {
 
 	myapp := app.NewWithID("qtt")
 	mywin := myapp.NewWindow("Quick Train Times")
-	mywin.Resize(fyne.NewSize(639, 640))
+	mywin.Resize(fyne.NewSize(640, 640))
 	if mywin.Canvas().Size().Width < 640 {
 		mobile = true
 	}
