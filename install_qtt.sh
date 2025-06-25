@@ -19,6 +19,6 @@ sudo make install #install quicktraintimes
 cd ~
 rm -rf qtt #remove installtion files
 
-if ! grep -Fxq "alias qtt=" .bash_aliases; then
+if ! grep -Fq "alias qtt=" .bash_aliases; then
   echo 'alias qtt="quicktraintimes"' >> .bash_aliases
 fi
