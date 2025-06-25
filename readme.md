@@ -30,7 +30,7 @@ The command `quicktraintimes` runs the app. You may want to set `alias qtt="quic
 [open web demo here](https://ic1149.github.io/qtt-demo)
 
 This is a web demo of the app that runs in your browser, using web assembly.
-Please bear in min the performance is not as good as a native app.
+Please bear in mind the performance is not as good as a native app.
 
 ## How to use the app
 
