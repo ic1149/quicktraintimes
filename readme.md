@@ -29,9 +29,8 @@ The command `quicktraintimes` runs the app. You may want to set `alias qtt="quic
 
 [open web demo here](https://ic1149.github.io/qtt-demo)
 
-**Please note the web demo DOES NOT function!**
-
-The web demo is simply an illustration of the interface. You can try using the Settings and Config QTT pages. Install the app to actually use it. This is due to limitations of the Fyne toolkit used.
+This is a web demo of the app that runs in your browser, using web assembly.
+Please bear in min the performance is not as good as a native app.
 
 ## How to use the app
 
