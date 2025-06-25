@@ -242,7 +242,7 @@ func tt_table(ut []train_service, dl int, ch, rh []string) *widget.Table {
 	var datarow []string
 	for i, val := range ut {
 		if i >= dl {
-			break
+			break // if too many services
 		}
 		datarow = nil
 		datarow = append(datarow, val.plat, val.toc, val.std, val.dest, val.etd)
