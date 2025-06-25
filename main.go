@@ -167,6 +167,9 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []str
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
 	current_tz, _ := now.Zone()
+	if current_tz == "UTC+1" {
+		current_tz = "BST"
+	}
 	current_tz = " " + current_tz
 	date_only := now.Format(time.RFC822)
 	date_only = date_only[0:10]
