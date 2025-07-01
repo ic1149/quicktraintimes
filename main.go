@@ -163,7 +163,12 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []str
 		return nil, nil, 0, err
 	}
 
-	now := time.Now()
+	londonLocation, err := time.LoadLocation("Europe/London")
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	utcNow := time.Now().UTC()
+	now := utcNow.In(londonLocation)
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
 	current_tz, _ := now.Zone()
