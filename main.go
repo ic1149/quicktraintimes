@@ -159,12 +159,8 @@ func (tc *TableConfig) BuildTable(mywin_addr *fyne.Window) *widget.Table {
 		err := crs_validator(cell_data)
 		if err == nil {
 			// is valid crs cell
-			for _, stn := range all_stations.StationList {
-				if stn.Crs == cell_data {
-					mywin_obj := *mywin_addr
-					dialog.ShowInformation("Station Name", stn.Name, mywin_obj)
-				}
-			}
+			mywin_obj := *mywin_addr
+			dialog.ShowInformation("Station Name", crs_to_name(cell_data), mywin_obj)
 		} else if len(cell_data) == 2 {
 			is_upper := true
 			for _, char := range cell_data {
@@ -193,8 +189,20 @@ type settings struct {
 	Desired_len int     `json:"desired_len"`
 }
 
+func crs_to_name(crs string) string {
+	if crs == "*" {
+		return "Any Station"
+	}
+	for _, stn := range all_stations.StationList {
+		if stn.Crs == crs {
+			return stn.Name
+		}
+	}
+	return "Unknown Station"
+}
+
 // use configured data to get data of train services
-func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []string, int, error) {
+func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]string, int, error) {
 	const base_url string = "https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepartureBoard/"
 
 	//crs = strings.ToUpper(strings.TrimSpace(crs))
@@ -247,7 +255,7 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []str
 		return nil, nil, 0, nil // not in any time ranges
 	}
 	res := make([][]train_service, 0, len(correct_time))
-	f_t_list := make([]string, 0, len(correct_time))
+	f_t_list := make([][2]string, 0, len(correct_time))
 	for _, v := range correct_time {
 		var url string = base_url + v.Org
 		var params string
@@ -270,7 +278,9 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, []str
 			return nil, nil, 0, err
 		}
 		res = append(res, this_res)
-		f_t_list = append(f_t_list, fmt.Sprintf("%s to %s", v.Org, v.Dest))
+
+		f_t_list = append(f_t_list, [2]string{fmt.Sprintf("%s to %s", v.Org, v.Dest),
+			fmt.Sprintf("%s to %s", crs_to_name(v.Org), crs_to_name(v.Dest))})
 	}
 	return res, f_t_list, correct_count, nil
 }
@@ -348,7 +358,7 @@ func refershTimes(mylabel_addr **widget.Label,
 		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders, mywin_addr)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
-			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
+			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0][0], f_t_list[0][1], table)))
 		})
 
 	case 2:
@@ -361,9 +371,9 @@ func refershTimes(mylabel_addr **widget.Label,
 			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil,
 				container.New(NewHalfHeightLayout(),
 					container.NewScroll(
-						widget.NewCard(f_t_list[0], "", table)),
+						widget.NewCard(f_t_list[0][0], f_t_list[0][1], table)),
 					container.NewScroll(
-						widget.NewCard(f_t_list[1], "", table2)),
+						widget.NewCard(f_t_list[1][0], f_t_list[1][1], table2)),
 				))
 
 		})
