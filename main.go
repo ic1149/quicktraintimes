@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 	"strconv"
 	"time"
+	"unicode"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -16,6 +18,7 @@ import (
 
 //go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go FyneApp.toml
 //go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go -append stations.json
+//go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go -append toc.json
 
 // catch the api
 type return_data struct {
@@ -59,6 +62,16 @@ type TableConfig struct {
 	CornerHeaderText   string     // Text for the top-left corner header cell
 }
 
+type tocs struct {
+	Version string `json:"version"`
+	TOCList []toc  `json:"TOCList"`
+}
+
+type toc struct {
+	Toc  string `json:"toc"`
+	Name string `json:"Value"`
+}
+
 func NewTableConfig(data [][]string, colHeaders []string, rowHeaders []string) *TableConfig {
 	return &TableConfig{
 		Data:               data,
@@ -70,7 +83,7 @@ func NewTableConfig(data [][]string, colHeaders []string, rowHeaders []string) *
 	}
 }
 
-func (tc *TableConfig) BuildTable() *widget.Table {
+func (tc *TableConfig) BuildTable(mywin_addr *fyne.Window) *widget.Table {
 	// Basic validation for data
 	if tc.Data == nil {
 		// log.Println("Warning: TableConfig.Data is nil. Creating an empty table.")
@@ -141,7 +154,36 @@ func (tc *TableConfig) BuildTable() *widget.Table {
 			}
 		}
 	}
-
+	table.OnSelected = func(pos widget.TableCellID) {
+		cell_data := tc.Data[pos.Row][pos.Col]
+		err := crs_validator(cell_data)
+		if err == nil {
+			// is valid crs cell
+			for _, stn := range all_stations.StationList {
+				if stn.Crs == cell_data {
+					mywin_obj := *mywin_addr
+					dialog.ShowInformation("Station Name", stn.Name, mywin_obj)
+				}
+			}
+		} else if len(cell_data) == 2 {
+			is_upper := true
+			for _, char := range cell_data {
+				if !unicode.IsLetter(char) || !unicode.IsUpper(char) {
+					is_upper = false
+					break
+				}
+			}
+			if is_upper {
+				for _, toc := range toc_names.TOCList {
+					if toc.Toc == cell_data {
+						mywin_obj := *mywin_addr
+						dialog.ShowInformation("TOC Name", toc.Name, mywin_obj)
+						break
+					}
+				}
+			}
+		}
+	}
 	return table
 }
 
@@ -242,7 +284,7 @@ func apply_col_widths(table *widget.Table) {
 	table.SetColumnWidth(4, 80)  // etd
 }
 
-func tt_table(ut []train_service, dl int, ch, rh []string) *widget.Table {
+func tt_table(ut []train_service, dl int, ch, rh []string, mywin_addr *fyne.Window) *widget.Table {
 	var data [][]string
 	var datarow []string
 	for i, val := range ut {
@@ -256,7 +298,7 @@ func tt_table(ut []train_service, dl int, ch, rh []string) *widget.Table {
 
 	config := NewTableConfig(data, ch, rh)
 	config.CellTemplateText = "?"
-	table := config.BuildTable()
+	table := config.BuildTable(mywin_addr)
 	apply_col_widths(table)
 	return table
 }
@@ -303,15 +345,15 @@ func refershTimes(mylabel_addr **widget.Label,
 			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, nil)
 		})
 	case 1:
-		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
+		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders, mywin_addr)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0], "", table)))
 		})
 
 	case 2:
-		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders)
-		table2 := tt_table(updated_times_s[1], desired_len, colHeaders, rowHeaders)
+		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders, mywin_addr)
+		table2 := tt_table(updated_times_s[1], desired_len, colHeaders, rowHeaders, mywin_addr)
 
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
@@ -334,6 +376,8 @@ func refershTimes(mylabel_addr **widget.Label,
 func tidyUp() {
 	// fmt.Println("exiting app, thank you for using Quick Train Times")
 }
+
+var toc_names tocs
 
 func main() {
 	// run when exiting
@@ -459,6 +503,11 @@ func main() {
 			placeholder.SetText("refreshing train times")
 			// home_tab.Content = placeholder
 		}
+	}
+
+	err = json.Unmarshal(resourceTocJson.StaticContent, &toc_names)
+	if err != nil {
+		dialog.ShowError(err, mywin)
 	}
 
 	go func() {

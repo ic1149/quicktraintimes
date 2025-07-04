@@ -1,0 +1,173 @@
+{
+    "version": "2022-05-17 12:00",
+    "TOCList": [
+        {
+            "toc": "AW",
+            "Value": "Transport for Wales"
+        },
+        {
+            "toc": "CC",
+            "Value": "c2c"
+        },
+        {
+            "toc": "CH",
+            "Value": "Chiltern Railways"
+        },
+        {
+            "toc": "CS",
+            "Value": "Caledonian Sleeper"
+        },
+        {
+            "toc": "EM",
+            "Value": "East Midlands Railway"
+        },
+        {
+            "toc": "ES",
+            "Value": "Eurostar"
+        },
+        {
+            "toc": "GC",
+            "Value": "Grand Central"
+        },
+        {
+            "toc": "GN",
+            "Value": "Great Northern"
+        },
+        {
+            "toc": "GR",
+            "Value": "London North Eastern Railway"
+        },
+        {
+            "toc": "GW",
+            "Value": "Great Western Railway"
+        },
+        {
+            "toc": "GX",
+            "Value": "Gatwick Express"
+        },
+        {
+            "toc": "HC",
+            "Value": "Heathrow Connect"
+        },
+        {
+            "toc": "HT",
+            "Value": "Hull Trains"
+        },
+        {
+            "toc": "HX",
+            "Value": "Heathrow Express"
+        },
+        {
+            "toc": "IL",
+            "Value": "Island Line"
+        },
+        {
+            "toc": "LD",
+            "Value": "Lumo"
+        },
+        {
+            "toc": "LE",
+            "Value": "Greater Anglia"
+        },
+        {
+            "toc": "LM",
+            "Value": "West Midlands Trains"
+        },
+        {
+            "toc": "LO",
+            "Value": "London Overground"
+        },
+        {
+            "toc": "LT",
+            "Value": "London Underground"
+        },
+        {
+            "toc": "ME",
+            "Value": "Merseyrail"
+        },
+        {
+            "toc": "NT",
+            "Value": "Northern"
+        },
+        {
+            "toc": "NY",
+            "Value": "North Yorkshire Moors Railway"
+        },
+        {
+            "toc": "PC",
+            "Value": "Private Charter"
+        },
+        {
+            "toc": "RT",
+            "Value": "Network Rail"
+        },
+        {
+            "toc": "SE",
+            "Value": "Southeastern"
+        },
+        {
+            "toc": "SJ",
+            "Value": "Sheffield Supertram"
+        },
+        {
+            "toc": "SN",
+            "Value": "Southern"
+        },
+        {
+            "toc": "SP",
+            "Value": "Swanage Railway"
+        },
+        {
+            "toc": "SR",
+            "Value": "ScotRail"
+        },
+        {
+            "toc": "SW",
+            "Value": "South Western Railway"
+        },
+        {
+            "toc": "TL",
+            "Value": "Thameslink"
+        },
+        {
+            "toc": "TP",
+            "Value": "TransPennine Express"
+        },
+        {
+            "toc": "TW",
+            "Value": "Tyne and Wear Metro"
+        },
+        {
+            "toc": "VT",
+            "Value": "Avanti West Coast"
+        },
+        {
+            "toc": "WR",
+            "Value": "West Coast Railway Co"
+        },
+        {
+            "toc": "XC",
+            "Value": "CrossCountry"
+        },
+        {
+            "toc": "XR",
+            "Value": "Elizabeth Line"
+        },
+        {
+            "toc": "ZB",
+            "Value": "Bus Station"
+        },
+        {
+            "toc": "ZF",
+            "Value": "Ferry Terminal"
+        },
+        {
+            "toc": "ZM",
+            "Value": "West Somerset Railway"
+        },
+        {
+            "toc": "ZZ",
+            "Value": "Unknown"
+        }
+    ]
+}
