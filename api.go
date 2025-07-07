@@ -11,10 +11,6 @@ import (
 
 // this code file handles api
 
-type wtapi struct {
-	Offset string `json:"dst_offset"`
-}
-
 // https://api1.raildata.org.uk/1010-live-departure-board-dep1_2/LDBWS/api/20220120/GetDepBoardWithDetails/RDG
 // https://api1.raildata.org.uk/1010-live-arrival-board-arr/LDBWS/api/20220120/GetArrBoardWithDetails/RDG
 // https://api1.raildata.org.uk/1010-service-details1_2/LDBWS/api/20220120/GetServiceDetails/{serviceid}
