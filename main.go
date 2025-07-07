@@ -161,6 +161,7 @@ func (tc *TableConfig) BuildTable(mywin_addr *fyne.Window) *widget.Table {
 			// is valid crs cell
 			mywin_obj := *mywin_addr
 			dialog.ShowInformation("Station Name", crs_to_name(cell_data), mywin_obj)
+			return
 		} else if len(cell_data) == 2 {
 			is_upper := true
 			for _, char := range cell_data {
@@ -170,13 +171,33 @@ func (tc *TableConfig) BuildTable(mywin_addr *fyne.Window) *widget.Table {
 				}
 			}
 			if is_upper {
-				for _, toc := range toc_names.TOCList {
-					if toc.Toc == cell_data {
-						mywin_obj := *mywin_addr
-						dialog.ShowInformation("TOC Name", toc.Name, mywin_obj)
-						break
+				// is valid TOC code
+				mywin_obj := *mywin_addr
+				low := 0
+				high := len(toc_names.TOCList)
+				for high > low {
+					middle := (low + high) / 2 // floor
+					if toc_names.TOCList[middle].Toc == cell_data {
+						dialog.ShowInformation("TOC Name", toc_names.TOCList[middle].Name, mywin_obj)
+						return
+					} else if cell_data > toc_names.TOCList[middle].Toc {
+						low = middle + 1 // select right
+					} else {
+						high = middle - 1 // select left
 					}
 				}
+
+				// last item slice length 1
+				if high == low && toc_names.TOCList[low].Toc == cell_data {
+					// found at last
+					dialog.ShowInformation("TOC Name", toc_names.TOCList[low].Name, mywin_obj)
+					return
+				} else {
+					// not found
+					dialog.ShowError(errors.New("invalid TOC name"), mywin_obj)
+					return
+				}
+
 			}
 		}
 	}
@@ -193,12 +214,32 @@ func crs_to_name(crs string) string {
 	if crs == "*" {
 		return "Any Station"
 	}
-	for _, stn := range all_stations.StationList {
-		if stn.Crs == crs {
-			return stn.Name
+
+	// binary search for station
+	// O(log n) instead of O(n)
+	// the sorted list has almost 3000 items
+	// 12 times max
+	low := 0
+	high := len(all_stations.StationList)
+	for high > low {
+		middle := (low + high) / 2 // floor
+
+		if all_stations.StationList[middle].Crs == crs {
+			return all_stations.StationList[middle].Name
+		} else if crs > all_stations.StationList[middle].Crs {
+			low = middle + 1 // select right
+		} else {
+			high = middle - 1 // select left
 		}
 	}
-	return "Unknown Station"
+
+	// last item slice length 1
+	if high == low && all_stations.StationList[low].Crs == crs {
+		// found at last
+		return all_stations.StationList[low].Name
+	} else {
+		return "Unknown Station" // not found
+	}
 }
 
 // use configured data to get data of train services
@@ -219,17 +260,14 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 
 	if IsUKUsingSummerTime() {
 		now = utcNow.Add(time.Hour)
-		current_tz = "BST"
+		current_tz = " BST"
 	} else {
-		current_tz = "GMT"
+		current_tz = " GMT"
 	}
 
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
-	if current_tz == "UTC+1" {
-		current_tz = "BST"
-	}
-	current_tz = " " + current_tz
+
 	date_only := now.Format(time.RFC822)
 	date_only = date_only[0:10]
 	var correct_count int
