@@ -213,15 +213,19 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 		return nil, nil, 0, err
 	}
 
-	londonLocation, err := time.LoadLocation("Europe/London")
-	if err != nil {
-		return nil, nil, 0, err
-	}
+	var now time.Time
+	var current_tz string
 	utcNow := time.Now().UTC()
-	now := utcNow.In(londonLocation)
+
+	if IsUKUsingSummerTime() {
+		now = utcNow.Add(time.Hour)
+		current_tz = "BST"
+	} else {
+		current_tz = "GMT"
+	}
+
 	var today int = int(now.Weekday())
 	correct_time := make([]quick_time, 0)
-	current_tz, _ := now.Zone()
 	if current_tz == "UTC+1" {
 		current_tz = "BST"
 	}
