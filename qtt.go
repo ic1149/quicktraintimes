@@ -17,6 +17,24 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// ----- global vars -----
+var all_stations stations
+
+var dayMapping = map[string]int{
+	"Sun": 0,
+	"Mon": 1,
+	"Tue": 2,
+	"Wed": 3,
+	"Thu": 4,
+	"Fri": 5,
+	"Sat": 6,
+}
+var days = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
+
+var qtt_cont_list []fyne.Container
+
+var qts qtt
+
 type station struct {
 	Crs  string `json:"crs"`
 	Name string `json:"Value"`
@@ -27,26 +45,23 @@ type stations struct {
 	StationList []station `json:"StationList"`
 }
 
-var all_stations stations
-
 type qtt struct {
 	Quick_times []quick_time `json:"quick_times"`
 	del_ids     []int
 }
-
-var qts qtt
 
 func (s *qtt) new_entry(new_qt quick_time) {
 	existing_ids := []int{}
 	for _, v := range s.Quick_times {
 		existing_ids = append(existing_ids, v.Id)
 	}
+	// unique ids used to identify the correct qtt
 	var new_id int
 
 	for {
-		new_id = rand.IntN(999) + 1
+		new_id = rand.IntN(999) + 1 // 1-1000, arbitrary, doesn't matter
 		if !slices.Contains(existing_ids, new_id) {
-			break
+			break // unique id
 		}
 	}
 
@@ -58,7 +73,7 @@ func (qts qtt) find_by_id(target_id int) (quick_time, error) {
 		if val.Id == target_id {
 			return val, nil
 		}
-	}
+	} // linear search because unsorted
 
 	return *new(quick_time), errors.New("not found")
 }
@@ -92,17 +107,6 @@ func (s *qtt) del_by_id(target_id int) {
 	s.del_ids = append(qts.del_ids, target_id)
 }
 
-var dayMapping = map[string]int{
-	"Sun": 0,
-	"Mon": 1,
-	"Tue": 2,
-	"Wed": 3,
-	"Thu": 4,
-	"Fri": 5,
-	"Sat": 6,
-}
-var days = []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
-
 func GetChosenDaysArray(selectedDays []string) []int {
 	var chosenInts []int
 	for _, dayStr := range selectedDays {
@@ -121,7 +125,7 @@ func time_validator(s string) error {
 	} else if s[2] != ':' {
 		return errors.New("not in correct time format")
 	}
-
+	// 15:39
 	return nil
 }
 
@@ -136,13 +140,12 @@ func crs_validator(s string) error {
 		}
 	}
 
-	for _, stn := range all_stations.StationList {
-		if stn.Crs == s {
-			return nil // CRS code found in list, no err
-		}
+	_, err := crs_to_name(s)
+	if err != nil {
+		return fmt.Errorf("station not found in list, ver %v", all_stations.Version)
+	} else {
+		return nil // station found, no error
 	}
-
-	return fmt.Errorf("station not found in list, ver %v", all_stations.Version)
 }
 
 func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI) *fyne.Container {
@@ -211,6 +214,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 	form := &widget.Form{
 		OnSubmit: func() {
+			// save data
 			var new_qt quick_time
 			new_qt.Id = id
 			new_qt.Start = entry_start.Text
@@ -235,6 +239,7 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 
 		},
 		OnCancel: func() {
+			// restore initial data
 			cancel_msg := dialog.NewInformation("Info", "changes cancelled", mywin_obj)
 			cancel_msg.Show()
 			entry_start.SetText(qt.Start)
@@ -282,9 +287,8 @@ func qtt_form(new bool, qt quick_time, mywin_addr *fyne.Window, rootURI fyne.URI
 	return form_border
 }
 
-var qtt_cont_list []fyne.Container
-
 func qtt_init(mywin_addr *fyne.Window, rootURI fyne.URI) *container.Scroll {
+	// GUI for qtt page
 	mywin := *mywin_addr
 	var err error
 	_, qts, err = load_json("qtt.json", rootURI)

@@ -20,6 +20,24 @@ import (
 //go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go -append stations.json
 //go:generate go run fyne.io/tools/cmd/fyne@latest bundle -o bundled.go -append toc.json
 
+// longest station CRS ['BHA', 'CGT', 'EDA', 'LCB', 'STI', 'SWB', 'SWC', 'WER', 'WHH', 'XWX', 'ZHS']
+// longest station names
+// [
+// 'Bournemouth Hurn Airport (Bus)',
+// 'Catterick Garrison Tesco (Bus)',
+// 'Edinburgh Airport (Bus or Tram',
+// 'Lochboisdale, South Uist (Bus)',
+// 'Stadium of Light (T & W Metro)',
+// 'Swaffham Tourist Inf Ctr (Bus)',
+// 'Swinderby A46 Roundabout (Bus)',
+// 'Wedgwood Old Road Bridge (Bus)',
+// 'Whitehill Prince of Wales (Bus',
+// 'Wallingford Market Place (Bus)',
+// 'Kensington High St Underground'
+// ]
+// all with 30 characters, seems like it cant store more and truncates
+// Edinburgh... and Whitehill... has missing closing brackets
+
 // catch the api
 type return_data struct {
 	TrainServices []any `json:"trainServices"`
@@ -160,7 +178,12 @@ func (tc *TableConfig) BuildTable(mywin_addr *fyne.Window) *widget.Table {
 		if err == nil {
 			// is valid crs cell
 			mywin_obj := *mywin_addr
-			dialog.ShowInformation("Station Name", crs_to_name(cell_data), mywin_obj)
+			find_name, err := crs_to_name(cell_data)
+			if err != nil {
+				dialog.ShowError(err, mywin_obj)
+				return
+			}
+			dialog.ShowInformation("Station Name", find_name, mywin_obj)
 			return
 		} else if len(cell_data) == 2 {
 			is_upper := true
@@ -210,9 +233,9 @@ type settings struct {
 	Desired_len int     `json:"desired_len"`
 }
 
-func crs_to_name(crs string) string {
+func crs_to_name(crs string) (string, error) {
 	if crs == "*" {
-		return "Any Station"
+		return "Any Station", nil
 	}
 
 	// binary search for station
@@ -225,7 +248,7 @@ func crs_to_name(crs string) string {
 		middle := (low + high) / 2 // floor
 
 		if all_stations.StationList[middle].Crs == crs {
-			return all_stations.StationList[middle].Name
+			return all_stations.StationList[middle].Name, nil
 		} else if crs > all_stations.StationList[middle].Crs {
 			low = middle + 1 // select right
 		} else {
@@ -236,9 +259,9 @@ func crs_to_name(crs string) string {
 	// last item slice length 1
 	if high == low && all_stations.StationList[low].Crs == crs {
 		// found at last
-		return all_stations.StationList[low].Name
+		return all_stations.StationList[low].Name, nil
 	} else {
-		return "Unknown Station" // not found
+		return "Unknown Station", errors.New("unknown station") // not found
 	}
 }
 
@@ -280,19 +303,14 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 			if err != nil {
 				return nil, nil, 0, err
 			}
-			fmt.Println(start)
-			fmt.Println(end)
-			fmt.Println(now)
+
 			// if within time range
 			if now.After(start) && now.Before(end) {
-				fmt.Println("within time")
 				correct_time = append(correct_time, qt)
 				correct_count++
 				if correct_count >= 2 {
 					break // more than two within time
 				}
-			} else {
-				fmt.Println("not within time")
 			}
 		}
 	}
@@ -307,25 +325,35 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 		var err error
 		if v.Dest != "*" {
 			params, err = format_params([]string{"filterCrs", "filterType", "numRows"},
-				[]string{v.Dest, "to", fmt.Sprint(numRows)})
+				[]string{v.Dest, "to", fmt.Sprint(numRows)}) // has filter dest
 		} else {
 			params, err = format_params([]string{"numRows"},
-				[]string{fmt.Sprint(numRows)})
+				[]string{fmt.Sprint(numRows)}) // no filter dest
 		}
 
 		if err != nil {
 			return nil, nil, 0, err
 		} else {
-			url = url + params
+			url = url + params // concat paremeters to url
 		}
 		this_res, err := request(url, key)
 		if err != nil {
 			return nil, nil, 0, err
 		}
-		res = append(res, this_res)
+		res = append(res, this_res) // append this request to list of requests
+
+		org_name, err := crs_to_name(v.Org)
+		if err != nil {
+			return nil, nil, 0, err
+		}
+		dest_name, err := crs_to_name(v.Dest)
+		if err != nil {
+			return nil, nil, 0, err
+		}
 
 		f_t_list = append(f_t_list, [2]string{fmt.Sprintf("%s to %s", v.Org, v.Dest),
-			fmt.Sprintf("%s to %s", crs_to_name(v.Org), crs_to_name(v.Dest))})
+			fmt.Sprintf("%s to %s", org_name, dest_name)})
+		// title string list
 	}
 	return res, f_t_list, correct_count, nil
 }
@@ -352,7 +380,7 @@ func tt_table(ut []train_service, dl int, ch, rh []string, mywin_addr *fyne.Wind
 	}
 
 	config := NewTableConfig(data, ch, rh)
-	config.CellTemplateText = "?"
+	config.CellTemplateText = "?" // put ? for unknown data
 	table := config.BuildTable(mywin_addr)
 	apply_col_widths(table)
 	return table
@@ -375,7 +403,7 @@ func refershTimes(mylabel_addr **widget.Label,
 	mylabel_obj := *mylabel_addr
 	ref_button_obj := *ref_button
 	fyne.Do(func() {
-		mylabel_obj.SetText("refreshing train times")
+		mylabel_obj.SetText("refreshing train times") // refresh message
 	})
 
 	mywin_obj := *mywin_addr
@@ -393,20 +421,20 @@ func refershTimes(mylabel_addr **widget.Label,
 		rowHeaders = append(rowHeaders, fmt.Sprintf("%v", i+1))
 	}
 	switch correct_count {
-	case 0:
+	case 0: // no correct
 		mylabel_obj := *mylabel_addr
 		fyne.Do(func() {
 			mylabel_obj.SetText("not in specified time frames")
 			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, nil)
 		})
-	case 1:
+	case 1: // one correct, whole page
 		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders, mywin_addr)
 		fyne.Do(func() {
 			mylabel_obj.SetText("")
 			hometab_obj.Content = container.NewBorder(container.NewHBox(ref_button_obj, mylabel_obj), nil, nil, nil, container.NewScroll(widget.NewCard(f_t_list[0][0], f_t_list[0][1], table)))
 		})
 
-	case 2:
+	case 2: // two correct, split page
 		table := tt_table(updated_times_s[0], desired_len, colHeaders, rowHeaders, mywin_addr)
 		table2 := tt_table(updated_times_s[1], desired_len, colHeaders, rowHeaders, mywin_addr)
 
@@ -432,8 +460,10 @@ func tidyUp() {
 	// fmt.Println("exiting app, thank you for using Quick Train Times")
 }
 
+// ----- global vars -----
 var toc_names tocs
 
+// ##### main #####
 func main() {
 	// run when exiting
 	defer tidyUp()
@@ -560,6 +590,7 @@ func main() {
 		}
 	}
 
+	// load TOC names to global var
 	err = json.Unmarshal(resourceTocJson.StaticContent, &toc_names)
 	if err != nil {
 		dialog.ShowError(err, mywin)
