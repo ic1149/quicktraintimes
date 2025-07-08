@@ -255,14 +255,11 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 	}
 
 	var now time.Time
-	var current_tz string
+	const current_tz string = " UTC"
 	utcNow := time.Now().UTC()
 
 	if IsUKUsingSummerTime() {
 		now = utcNow.Add(time.Hour)
-		current_tz = " BST"
-	} else {
-		current_tz = " GMT"
 	}
 
 	var today int = int(now.Weekday())
@@ -283,13 +280,19 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 			if err != nil {
 				return nil, nil, 0, err
 			}
+			fmt.Println(start)
+			fmt.Println(end)
+			fmt.Println(now)
 			// if within time range
 			if now.After(start) && now.Before(end) {
+				fmt.Println("within time")
 				correct_time = append(correct_time, qt)
 				correct_count++
 				if correct_count >= 2 {
 					break // more than two within time
 				}
+			} else {
+				fmt.Println("not within time")
 			}
 		}
 	}
