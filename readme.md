@@ -42,7 +42,7 @@ You can also set other preferences.
 Remember to save the options.
 Restart the app to apply the settings.
 
-A key can be obtained by subscribing [Live Deaprture Board on Rail Data Marketplace](https://raildata.org.uk/dataProduct/P-d81d6eaf-8060-4467-a339-1c833e50cbbe/overview)
+A key can be obtained by subscribing to [Live Deaprture Board on Rail Data Marketplace](https://raildata.org.uk/dataProduct/P-d81d6eaf-8060-4467-a339-1c833e50cbbe/overview).
 
 
 ### 2. Config QTTs
