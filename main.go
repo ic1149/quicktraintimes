@@ -283,6 +283,8 @@ func trains(key string, rootURI fyne.URI, numRows int) ([][]train_service, [][2]
 
 	if IsUKUsingSummerTime() {
 		now = utcNow.Add(time.Hour)
+	} else {
+		now = utcNow
 	}
 
 	var today int = int(now.Weekday())
@@ -573,7 +575,6 @@ func main() {
 	refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
 
 	refresh_button.OnTapped = func() {
-		fyne.Do(func() { placeholder.SetText("refreshing train times") })
 		go refershTimes(&placeholder, &mywin, &home_tab, &mytabs, existing_settings.Key, existing_settings.Desired_len, rootURI, &refresh_button)
 		fyne.Do(func() { mywin.SetContent(mytabs) })
 	}
