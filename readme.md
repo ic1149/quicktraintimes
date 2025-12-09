@@ -21,9 +21,9 @@ The command `quicktraintimes` runs the app. You may want to set `alias qtt="quic
 - download the apk file in release
 - install the apk file (you may have to enable permission to install apk)
 
-### Windows
-- download the exe file in release
-- run the file
+### Other Operating Systems
+- Windows support has been discontinued since v1.0.5.
+- I have no plan to support any other OS, you can compile it yourself.
 
 ### Web Demo
 
