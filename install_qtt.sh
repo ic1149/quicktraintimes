@@ -1,14 +1,14 @@
 #!/bin/bash
 
 cd ~
-if [ -d ./qtt]; then
-  rm -rf ./qtt # remove existing installer
+if [ -d ./quicktraintimes_installer]; then
+  rm -rf ./quicktraintimes_installer # remove existing installer
 fi
-mkdir qtt #create temp dir
-cd qtt
+mkdir quicktraintimes_installer #create temp dir
+cd quicktraintimes_installer
 
-wget github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes_1.0.4.tar.xz
-tar -xf quicktraintimes_1.0.4.tar.xz
+wget https://github.com/ic1149/quicktraintimes/releases/latest/download/quicktraintimes.tar.xz
+tar -xf quicktraintimes.tar.xz
 
 if which quicktraintimes; then
   sudo rm $(which quicktraintimes) # remove existing installation
@@ -17,7 +17,7 @@ fi
 sudo make install #install quicktraintimes
 
 cd ~
-rm -rf qtt #remove installtion files
+rm -rf quicktraintimes_installer #remove installtion files
 
 if ! grep -Fq "alias qtt=" .bash_aliases; then
   echo 'alias qtt="quicktraintimes"' >> .bash_aliases
